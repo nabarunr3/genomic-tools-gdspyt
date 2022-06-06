@@ -1,3 +1,5 @@
 #+title: Python for Genomic Data Science 
 
-This contains code as part of the above course on Coursera. 
+This contains code as part of the [[https://www.coursera.org/learn/python-genomics/home/welcome][Python for Genomic Data Science]] course on Coursera.
+
+
