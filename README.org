@@ -2,4 +2,7 @@
 
 This contains code as part of the [[https://www.coursera.org/learn/python-genomics/home/welcome][Python for Genomic Data Science]] course on Coursera.
 
-
+We aim to achieve 3 things here: 
+1. Parse a FASTA file. 
+2. Study the ORFs in the sequences of the file and find the longest ORF. 
+3. Map some repeat sequences in the sequence reads.
