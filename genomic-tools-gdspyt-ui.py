@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-#the following code snippet reads from a fasta file and puts the sequences in a dictionary
+#the following code reads from a FASTA file and puts the sequences in a dictionary
 import sys
 def usage():
     print
@@ -8,12 +8,12 @@ def usage():
 
     Basic Usage:
 
-    python3 fastinfo.py <filename.fasta> [option1] [option2...]
+    python3 fastinfo.py <filename.FASTA> [option1] [option2...]
 
     """
     return 0
 
-#now we try to open the file, which is stored in the second position of the sys.argv[] list
+#now we open the file, which is stored in the second position of the sys.argv[] list
 try:
     f = open(sys.argv[1], 'r')
     print("FASTA File found. Processing...")
@@ -23,12 +23,12 @@ except IOError:
 
 # Putting the sequences of the file in a dictionary
 
-def multi_fasta_to_dict(fasta_file_object):
+def multi_FASTA_to_dict(FASTA_file_object):
     """
     This function opens a FASTA file and puts the sequences in a dictionary. 
     """
     sequence_dictionary = {}
-    for line in fasta_file_object:
+    for line in FASTA_file_object:
         line = line.rstrip() #removing the trailing newlines from the FASTA file
         #print(line)
         if line[0] == '>':
@@ -46,12 +46,17 @@ def multi_fasta_to_dict(fasta_file_object):
 
     return sequence_dictionary
 
-# Printing the identifiers and the number of sequences
+# Printing file information 
 # Now we print the sequence identifiers in the dictionary and the number of entries in the multi-FASTA file. 
 
-fast_dict = multi_fasta_to_dict(f)
+fast_dict = multi_FASTA_to_dict(f)
 print("\nThe following identifiers have been retrieved:")
 for keys in fast_dict:
     print(keys)
-    print(fast_dict[keys])
+    #print(fast_dict[keys]) #prints all sequences, hence commented out
 print("\nThere are a total of", len(fast_dict), "sequences in the file.")
+
+# Printing length information of sequences
+
+from seqlen_compare import *
+seq_len_compare(fast_dict)

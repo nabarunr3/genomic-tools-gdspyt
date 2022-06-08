@@ -10,7 +10,7 @@ Separate functions for the following tasks are to be written:
 *** Opening the file 
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py
   #!/usr/bin/python3
-  #the following code snippet reads from a fasta file and puts the sequences in a dictionary
+  #the following code reads from a FASTA file and puts the sequences in a dictionary
   import sys
   def usage():
       print
@@ -19,12 +19,12 @@ Separate functions for the following tasks are to be written:
 
       Basic Usage:
 
-      python3 fastinfo.py <filename.fasta> [option1] [option2...]
+      python3 fastinfo.py <filename.FASTA> [option1] [option2...]
 
       """
       return 0
 
-  #now we try to open the file, which is stored in the second position of the sys.argv[] list
+  #now we open the file, which is stored in the second position of the sys.argv[] list
   try:
       f = open(sys.argv[1], 'r')
       print("FASTA File found. Processing...")
@@ -36,12 +36,12 @@ Separate functions for the following tasks are to be written:
 
 *** Putting the sequences of the file in a dictionary
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py :comments org
-  def multi_fasta_to_dict(fasta_file_object):
+  def multi_FASTA_to_dict(FASTA_file_object):
       """
       This function opens a FASTA file and puts the sequences in a dictionary. 
       """
       sequence_dictionary = {}
-      for line in fasta_file_object:
+      for line in FASTA_file_object:
           line = line.rstrip() #removing the trailing newlines from the FASTA file
           #print(line)
           if line[0] == '>':
@@ -60,19 +60,107 @@ Separate functions for the following tasks are to be written:
       return sequence_dictionary
 #+end_src
 
-*** Printing the identifiers and the number of sequences
+*** Printing file information 
 Now we print the sequence identifiers in the dictionary and the number of entries in the multi-FASTA file. 
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py :comments org 
-  fast_dict = multi_fasta_to_dict(f)
+  fast_dict = multi_FASTA_to_dict(f)
   print("\nThe following identifiers have been retrieved:")
   for keys in fast_dict:
       print(keys)
-      print(fast_dict[keys])
+      #print(fast_dict[keys]) #prints all sequences, hence commented out
   print("\nThere are a total of", len(fast_dict), "sequences in the file.")
 #+end_src
 
+*** Printing length information of sequences
+#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py :comments org 
+  from seqlen_compare import *
+  seq_len_compare(fast_dict)
+#+end_src
 *** Example sequence
 #+begin_src python :session gdspyt
 test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
+#+end_src
+
+* Comparing sequences in the file
+(2) What are the lengths of the sequences in the file? What is the longest sequence and what is the shortest sequence? Is there more than one longest or shortest sequence? What are their identifiers? 
+
+The way to go about this is:
+- Find the length of each seqeunce in the dictionary and put this in another dictionary with keys as the identifiers and values as the length. Use this dictionary for comparison.
+- Now, find the longest and shortest sequence and print their identifiers and lengths.
+
+
+** Creating a dictionary storing identifiers and sequence lengths
+#+begin_src python :tangle ./seqlen_compare.py :comments org :mkdirp 
+  def seq_len_compare(seq_dict):
+      """This function compares the length of DNA sequences in a dictionary
+      """
+
+      """first, we create a new sequence dictionary which stores lengths against identifiers
+      """
+      seq_len_dict = {}
+      for keys,values in seq_dict.items():
+          seq_len_dict[keys] = len(values)
+
+      #for testing     
+      # for keys,values in seq_len_dict.items():
+      #     print(keys,values)
+
+
+      """
+      Now we compare the lengths of sequences in the dictionary.
+      """
+
+      #1. Maximum Length
+
+      #first we initialize the maximum sequence length to 0
+      max = 0
+      #next we initialize a variable to store the identifier corresponding to the maximum sequence length
+      max_identifier = ''
+      #now we create a list which holds all identifiers which have the maximum value
+      max_list = []
+      for keys,values in seq_len_dict.items():
+          if values>max:
+              max = values
+              max_identifier = keys
+
+      #next we store all the identifiers in the dictionary which have the value corresponding to the maximum length
+      for keys,values in seq_len_dict.items():
+          if values==max:
+              max_list.append(keys)
+
+      #2. Minimum Length 
+      #first we initialize the minimum sequence length to the maximum value obtained in the previous section
+      min = max 
+      #next we initialize a variable to store the identifier corresponding to the minimum sequence length
+      min_identifier = ''
+      #now we create a list which holds all identifiers which have the minimum value
+      min_list = []
+      for keys,values in seq_len_dict.items():
+          if values<min:
+              min = values
+              min_identifier = keys
+
+      #next we store all the identifiers in the dictionary which have the value corresponding to the minimum length
+      for keys,values in seq_len_dict.items():
+          if values==min:
+              min_list.append(keys)
+
+      """
+      Now we print out the values obtained along with their identifiers.
+      """
+      #1. Print Maximum Length(s)
+      print("\nThe following", len(max_list),  "sequence(s) has/have the maximum length of", max, '.')
+      for x in range(len(max_list)):
+          #print the identifiers in the max_list
+          print("\n", max_list[x])
+
+      #2. Print Minimum Length(s)
+      print("\nThe following", len(min_list), "sequence(s) has/have the minimum length of", min,'.')
+      for x in range(len(min_list)):
+          #print the identifiers in the min_list
+          print("\n", min_list[x])
+
+      #to exit from the function
+      return 0
 #+end_src
 
