@@ -211,23 +211,91 @@ What about the frames 4, 5 and 6? For them, we take the reverse strand, that is,
 
 The problem with the reverse strand is, we also have to map the starting and ending positions of the ORF, if any.
 
-For example, the sequence
-5' CCTCGAGTCTGATTGCATGCAAATG
-
-Has
-5' C ATT TGC ATG CAA TCA GAC TCG AGG 3'
-*** Complement of Sequence
-#+begin_src python  :var seq_str="CCTCGAGTCTGATTGCATGCAAATG" :results output
+For this, when we get the starting position of the ORF in a reverse complement string, we use the subtract that position from the total length of the forward sequence. That gives us the starting position of the orf in the reverse direction, in the forward string itself.
+** Finding reverse complement of sequences
+*** Revese of a Sequence
+#+begin_src python :session gdspyt
+  #This is a simple function to reverse a string
   def sequence_reverse(sequence):
       """
       This program finds the reverse of the sequence entered. 
       """
-      return sequence[]
+      #first we initialize the string variable which will contain our reversed string
+      reversed_sequence = ''
+      #next we initialize our loop variable to the value of the last index of 'sequence'
+      i=len(sequence)-1
+      #we use a while loop, which continues till i is greater than or equal to zero 
+      while i>=0:
+          #we concatenate each letter from the end of the sequence entered to form a new string which has the order reversed
+          reversed_sequence = reversed_sequence+sequence[i]
+          #in each iteration we decrease the value of the variable i to maintain the loop condition
+          i=i-1
 
-  print (sequence_reverse(seq_str))
+      #finally, exit from the function and return the reversed sequence    
+      return reversed_sequence
 #+end_src
 
-#+RESULTS:
-: G
+Testing the above:
+#+begin_src python :session gdspyt :results output  
+print(sequence_reverse(test_sequence))
+#+end_src
 
+*** Complement of a sequence
+#+begin_src python :session gdspyt :results output
+  #this function returns the complement of a DNA sequence entered, NOT the reverse complement
+  def dna_complement(sequence):
+      """
+      This function returns the complementary sequence of a DNA sequence entered.
 
+      """
+      #first we define a dictionary containing all the bases and their complements, even in lowecase
+      bases_dict = {"A":"T", "a":"t", "C":"G", "c":"g", "G":"C", "g":"c", "T":"A", "t":"a", "N":"N", "n":"n"}
+
+      #we initialize a string variable to store the complementary sequence
+      complement = ''
+
+      #next we loop over our sequence and make a new complementary string
+      for i in sequence:
+          complement = complement + bases_dict[i]
+
+      #finally, return the complement sequence and exit from the function
+      return complement
+#+end_src
+
+Testing the above function
+#+begin_src python :session gdspyt :results output  
+print(dna_complement(test_sequence))
+#+end_src
+
+*** Reverse complement of a sequence
+#+begin_src python :session gdspyt
+  #a simple function which calls the reverse string and sequence complement functions to calculate the reverse complements
+  def reverse_complement(sequence):
+      return(dna_complement(sequence_reverse(sequence)))
+    
+#+end_src
+
+Testing the above function
+#+begin_src python :session gdspyt :results output
+print(reverse_complement(test_sequence))
+#+end_src
+
+** Finding all ORFs in a sequence
+#+begin_src python
+  #in this function we find all ORFs in a sequence, that is, sequences which start with ATG and end with any of the stop codons TAA, TAG and TGA
+  def ORF_find(seq_dictionary):
+      """
+      This function accepts a sequence dictionary created from identifier:sequence pairs from a multi-FASTA file and returns another sequence dictionary containing identifier:ORF lists.
+
+      """
+      reverse_complement = ''
+      for keys, values in seq_dictionary.items():
+          reverse_complement = reverse_complement(values)
+          #now start going through orfs 1-3
+          i = 0
+          while i<=3:
+              for 
+        
+    
+    
+#+end_src
