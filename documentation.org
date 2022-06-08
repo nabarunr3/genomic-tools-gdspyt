@@ -82,14 +82,16 @@ test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGG
 #+end_src
 
 * Comparing sequences in the file
-(2) What are the lengths of the sequences in the file? What is the longest sequence and what is the shortest sequence? Is there more than one longest or shortest sequence? What are their identifiers? 
 
+** Question 
+#+begin_quote
+(2) What are the lengths of the sequences in the file? What is the longest sequence and what is the shortest sequence? Is there more than one longest or shortest sequence? What are their identifiers? 
+#+end_quote
+** Our Approach 
 The way to go about this is:
 - Find the length of each seqeunce in the dictionary and put this in another dictionary with keys as the identifiers and values as the length. Use this dictionary for comparison.
 - Now, find the longest and shortest sequence and print their identifiers and lengths.
-
-
-** Creating a dictionary storing identifiers and sequence lengths
+** Creating a dictionary storing identifiers and sequence lengths and printing it 
 #+begin_src python :tangle ./seqlen_compare.py :comments org :mkdirp 
   def seq_len_compare(seq_dict):
       """This function compares the length of DNA sequences in a dictionary
@@ -163,4 +165,69 @@ The way to go about this is:
       #to exit from the function
       return 0
 #+end_src
+
+* Identification and Mapping of Open Reading Frames (ORFs)
+** Question 
+#+begin_quote
+(3) In molecular biology, a reading frame is a way of dividing the DNA sequence of nucleotides into a set of consecutive, non-overlapping triplets (or codons). Depending on where we start, there are six possible reading frames: three in the forward (5' to 3') direction and three in the reverse (3' to 5'). For instance, the three possible forward reading frames for the sequence AGGTGACACCGCAAGCCTTATATTAGC are: 
+
+AGG TGA CAC CGC AAG CCT TAT ATT AGC
+
+A GGT GAC ACC GCA AGC CTT ATA TTA GC
+
+AG GTG ACA CCG CAA GCC TTA TAT TAG C 
+
+These are called reading frames 1, 2, and 3 respectively. An open reading frame (ORF) is the part of a reading frame that has the potential to encode a protein. It starts with a start codon (ATG), and ends with a stop codon (TAA, TAG or TGA). For instance, ATGAAATAG is an ORF of length 9.
+
+Given an input reading frame on the forward strand (1, 2, or 3) your program should be able to:
+1. identify all ORFs present in each sequence of the FASTA file, and answer
+2. what is the length of the longest ORF in the file?
+3. What is the identifier of the sequence containing the longest ORF?
+4. For a given sequence identifier, what is the longest ORF contained in the sequence represented by that identifier?
+5. What is the starting position of the longest ORF in the sequence that contains it? The position should indicate the character number in the sequence. For instance, the following ORF in reading frame 1:
+
+>sequence1
+
+ATGCCCTAG
+
+starts at position 1.
+
+Note that because the following sequence:
+
+>sequence2
+
+ATGAAAAAA
+
+does not have any stop codon in reading frame 1, we do not consider it to be an ORF in reading frame 1. 
+#+end_quote
+
+** Our Approach 
+*** How we define ORFs?
+Open Reading Frames are substrings of DNA sequence strings which start with a start codon ATG and end with a stop codon, TAA, TAG or TGA.
+
+Now, a given sequence will have 6 reading frames. Given a sequence, its easy to understand the first 3: we start accepting codons in multiples of 3 from the first position, the second and the third. 
+
+What about the frames 4, 5 and 6? For them, we take the reverse strand, that is, the reverse complement of our sequence and take ORFs in it, as we had done for the forward strand.
+
+The problem with the reverse strand is, we also have to map the starting and ending positions of the ORF, if any.
+
+For example, the sequence
+5' CCTCGAGTCTGATTGCATGCAAATG
+
+Has
+5' C ATT TGC ATG CAA TCA GAC TCG AGG 3'
+*** Complement of Sequence
+#+begin_src python  :var seq_str="CCTCGAGTCTGATTGCATGCAAATG" :results output
+  def sequence_reverse(sequence):
+      """
+      This program finds the reverse of the sequence entered. 
+      """
+      return sequence[]
+
+  print (sequence_reverse(seq_str))
+#+end_src
+
+#+RESULTS:
+: G
+
 

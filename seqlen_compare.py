@@ -1,4 +1,4 @@
-# Creating a dictionary storing identifiers and sequence lengths
+# Creating a dictionary storing identifiers and sequence lengths and printing it 
 
 def seq_len_compare(seq_dict):
     """This function compares the length of DNA sequences in a dictionary
