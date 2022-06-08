@@ -289,13 +289,38 @@ print(reverse_complement(test_sequence))
 
       """
       reverse_complement = ''
-      for keys, values in seq_dictionary.items():
+      stop_codon_tuple = ("TAA", "TAG", "TGA")
+      start_index_in_frame = None
+      stop_index_in_frame = None
+      for identifiers, sequences in seq_dictionary.items():
           reverse_complement = reverse_complement(values)
-          #now start going through orfs 1-3
+          #now start going through frames 1, 2 and 3
+          codon = ""
           i = 0
-          while i<=3:
-              for 
-        
-    
-    
+          while i<3:
+              for j in range(i, len(sequences) - i):
+                  if j + 3 > len(sequences):
+                      break
+                  codon = values[j:j + 3]
+                  if codon == "ATG":
+                      start_index_in_frame = j
+                  if codon in stop_codon_tuple:
+                      stop_index_in_frame = j
+                  j = j + 3
+
+              #Now check if the reading frame actually contains an ORF
+              if (start_index_in_frame != None && stop_index_in_frame != None):
+                  j = start_index_in_frame
+                  while (j < stop_index_in_frame):
+                      orf_codon_list.append(sequence[j:j+3])
+                      j + 3
+
+              orf_dict
+                    
+                
+                    
+                
+
+
+
 #+end_src
