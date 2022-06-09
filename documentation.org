@@ -281,6 +281,81 @@ print(reverse_complement(test_sequence))
 #+end_src
 
 ** Finding all ORFs in a sequence
+Orf storage scheme:
+- A dictionary containing all sequence identifers as keys. For each identifier:
+  - A nested dictionary containing information about 6 reading frames. For each reading frame: 
+    - A list containing 3 things:
+      1. A nested list containing the codons of the ORF, if found, from the start through the stop condons
+      2. Start position of the ORF, if found
+      3. Stop position of the ORF, if found 
+#+begin_src python
+  orf_dictionary = {
+      identifier_1:
+      frame_dictionary_1{
+          frame_1:
+          frame_1_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame],
+          frame_2:
+          frame_2_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame],
+          .
+          .
+          .,
+          frame_6:
+          frame_6_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame]},
+
+      identifier_2:
+      frame_dictionary_2{
+          frame_1:
+          frame_1_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame],
+          frame_2:
+          frame_2_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame],
+          .
+          .
+          .,
+          frame_6:
+          frame_6_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame]},
+      .
+      .
+      .,
+      identifier_n:
+      frame_dictionary_n{
+          frame_1:
+          frame_1_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame],
+          frame_2:
+          frame_2_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame],
+          .
+          .
+          .,
+          frame_6:
+          frame_6_list[
+              orf_codon_list["startcodon", ..., "stopcodon"],
+              start_index_in_frame,
+              stop_index_in_frame]}}
+#+end_src
+
 #+begin_src python
   #in this function we find all ORFs in a sequence, that is, sequences which start with ATG and end with any of the stop codons TAA, TAG and TGA
   def ORF_find(seq_dictionary):
@@ -288,39 +363,93 @@ print(reverse_complement(test_sequence))
       This function accepts a sequence dictionary created from identifier:sequence pairs from a multi-FASTA file and returns another sequence dictionary containing identifier:ORF lists.
 
       """
+
+      """Initializing some necessicities""" 
+
+      #the master dictionary containing all the ORFs from all reading frames along with their positions in each sequence
+      orf_dictionary = {}
+    
+      #Variable to store the reverse complement 
       reverse_complement = ''
+
+      #Tuple containing our stop codons
       stop_codon_tuple = ("TAA", "TAG", "TGA")
+
+      #the start codon
+      start_codon = "ATG"
+
+      #initializing the start and stop codon position variables to null values 
       start_index_in_frame = None
       stop_index_in_frame = None
+
+      """Now we enter the loop to check for our coding sequences."""
       for identifiers, sequences in seq_dictionary.items():
           reverse_complement = reverse_complement(values)
-          #now start going through frames 1, 2 and 3
+          #start going through frames 1, 2 and 3
           codon = ""
+          frame_dictionary = {}
           i = 0
           while i<3:
-              for j in range(i, len(sequences) - i):
-                  if j + 3 > len(sequences):
-                      break
-                  codon = values[j:j + 3]
-                  if codon == "ATG":
+              for j in range(i, (len(sequences) - (i + 3))):
+                  codon = values[j:(j + 3)]
+                  if codon == start_codon:
                       start_index_in_frame = j
                   if codon in stop_codon_tuple:
                       stop_index_in_frame = j
+                  #skipping 3 codons and re-entering the loop     
                   j = j + 3
 
+              frame_list = []
+              orf_codon_list = []
               #Now check if the reading frame actually contains an ORF
               if (start_index_in_frame != None && stop_index_in_frame != None):
+
+                  #continue from the position where start_codon was encountered 
                   j = start_index_in_frame
+                
+                  #stop at stop codon's position 
                   while (j < stop_index_in_frame):
+                      #build the codon list in the ORF 
                       orf_codon_list.append(sequence[j:j+3])
                       j + 3
+                  #building the frame information list
+                  frame_list.append(orf_codon_list)
+                  frame_list.append(start_index_in_frame)
+                  frame_list.append(stop_index_in_frame)
+                
+                  frame_dictionary["Frame_" + str(i+1)] = frame_list
 
-              orf_dict
-                    
-                
-                    
-                
+          orf_dictionary[identifiers] = frame_dictionary
+
+
+
 
 
 
 #+end_src
+
+
+Test for the None assignment and condition
+
+#+begin_src python :results output
+  test = None
+  if test==None:
+      print("The value of the variable is", test)
+  if test != None:
+      print("LOL")
+#+end_src
+
+#+RESULTS:
+: The value of the variable is None
+
+Test for slicing behavior
+
+#+begin_src python :results output
+  string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  #the above string contains only 36 characters, thus the last index should be 35.
+  #thus printing from 0 index through 36 should give back the string from index 0 through 35, which is 0 to 36-1
+  print(string[0:36])
+#+end_src
+
+#+RESULTS:
+: ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
