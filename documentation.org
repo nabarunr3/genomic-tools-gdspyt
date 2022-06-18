@@ -282,79 +282,276 @@ print(reverse_complement(test_sequence))
 
 ** Finding all ORFs in a sequence
 Orf storage scheme:
-- A dictionary containing all sequence identifers as keys. For each identifier:
-  - A nested dictionary containing information about 6 reading frames. For each reading frame: 
-    - A list containing 3 things:
-      1. A nested list containing the codons of the ORF, if found, from the start through the stop condons
-      2. Start position of the ORF, if found
-      3. Stop position of the ORF, if found 
+#+begin_quote
+Master Dictionary -> Sequence Dictionary -> Frame Dictionary -> ORF Dictionary[codon_list, starting position, ending position]
+#+end_quote
+- A dictionary containing all sequence identifers as keys, each of which contain another dictionary. 
+  - Each frame containing information about 6 reading frames. For each reading frame:
+    - A dictionary, whose keys correspond to an ORF discovered in the reading frame, if ORFs are found at all. Each ORF key will contain a list containing 3 things:
+      - A nested list containing the codons of the ORF, from the start through the stop condons
+      - Start position of the ORF,
+      - Stop position of the ORF,  
 #+begin_src python
   orf_dictionary = {
       identifier_1:
       frame_dictionary_1{
           frame_1:
-          frame_1_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame],
+          frame_1_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]},
           frame_2:
-          frame_2_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame],
+          frame_2_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]},
           .
           .
-          .,
+          .
           frame_6:
-          frame_6_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame]},
-
+          frame_6_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]}},
       identifier_2:
-      frame_dictionary_2{
+      frame_dictionary_1{
           frame_1:
-          frame_1_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame],
+          frame_1_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]},
           frame_2:
-          frame_2_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame],
+          frame_2_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]},
           .
           .
-          .,
+          .
           frame_6:
-          frame_6_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame]},
+          frame_6_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]}}
       .
       .
-      .,
+      .
       identifier_n:
-      frame_dictionary_n{
+      frame_dictionary_1{
           frame_1:
-          frame_1_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame],
+          frame_1_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]},
           frame_2:
-          frame_2_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame],
+          frame_2_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]},
           .
           .
-          .,
+          .
           frame_6:
-          frame_6_list[
-              orf_codon_list["startcodon", ..., "stopcodon"],
-              start_index_in_frame,
-              stop_index_in_frame]}}
+          frame_6_dictionary{
+              ORF1:
+              ORF1_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              ORF2:
+              ORF2_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame],
+              .
+              .
+              .
+              ORFn:
+              ORFn_list[orf_codon_list["startcodon", ..., "stopcodon"],
+                        start_index_in_frame,
+                        stop_index_in_frame]}}}
 #+end_src
+
+** Breaking down into parts
+Having defined the data structure, let us break up the scheme of work into granular functions
+1. Function which takes the sequence, starts from the beginning and detects all ORFs and returns a dictionary of the type:
+   #+begin_src python
+     orf_dictionary = {
+         ORF1:[["start_codon, ...., stop_codon"]
+               starting_position,
+               stopping_position],
+         ORF2:[["start_codon, ...., stop_codon"]
+               starting_position,
+               stopping_position],
+         .
+         .
+         .
+         ORFn:[["start_codon, ...., stop_codon"]
+               starting_position,
+               stopping_position]}
+   #+end_src
+   
+2. Function which extracts all frames from a given sequence and returns a dictionary of type:
+   #+begin_src python
+     frame_dictionary = {
+         frame_1:sequence1,
+         frame_2:sequence2,
+         .
+         .
+         .,
+         frame_3:sequence3}
+   #+end_src
+   
+3. Function which takes *a sequence* and *returns a dictionary* all the ORFs with their starting and stopping position in /all the frames/ and prints them.
+
+4. Function which prints all ORF information of *a sequence*.
+
+5. Function which compares the lengths of ORFs and returns the *longest ORF(s)* of *a sequence*.
+
+Having done the above, it is easy to scale it up for all FASTA sequences in a file.
+1. Function which prints ORF information of all sequences in the file.
+2. Function which compares the ORFs of a file and prints out the longest
+   and shortest ORFs.
+
+
+** Finding all ORFs in a single frame
+#+begin_src python
+  def frame_orfs(frame):
+      #define the start and stop codons
+      start_codon = "ATG"
+      stop_codon_tuple = ("TAA", "TAG", "TGA")
+    
+      #trimming the frame to number of nucleotides in multiples of 3
+      for i in range((len(frame) - (len(frame)%3))):
+          trimmed_frame = trimmed_frame + frame[i]
+
+      #now get all the positions of start and stop codons
+      for i in range((len(trimmed_frame) - 3)):
+          codon = trimmed_frame[i:i+3]
+
+          #storing the start positions 
+          if codon == start_codon:
+              start_pos_list.append(i)
+
+          #storing the stop positions 
+          if codon in stop_codon_tuple:
+              stop_pos_list.append(i)
+
+          #incrementing i by 3
+          i = i + 3
+
+      #Now getting the ORFs.     
+      for start_position in start_pos_list:
+          i = 1
+          for stop_position in stop_pos_list:
+              orf_key = "ORF"+str(i)
+              orf_dict[orf_key] = [[],
+                                        start_position,
+                                        stop_position]
+              for j in range(start_position:stop_position):
+                  orf_dict[orf_key][0].append(trimmed_frame[j:j+3])
+
+          #updating ORF number 
+          i = i + 1
+
+      return orf_dict
+        
+#+end_src
+
 
 #+begin_src python
   #in this function we find all ORFs in a sequence, that is, sequences which start with ATG and end with any of the stop codons TAA, TAG and TGA
@@ -439,9 +636,6 @@ Test for the None assignment and condition
       print("LOL")
 #+end_src
 
-#+RESULTS:
-: The value of the variable is None
-
 Test for slicing behavior
 
 #+begin_src python :results output
@@ -450,6 +644,3 @@ Test for slicing behavior
   #thus printing from 0 index through 36 should give back the string from index 0 through 35, which is 0 to 36-1
   print(string[0:36])
 #+end_src
-
-#+RESULTS:
-: ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
