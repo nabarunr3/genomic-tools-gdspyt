@@ -1,4 +1,20 @@
 #+title:A set of sequence manipulation code
+
+* Table of Contents                                                     :toc:
+- [[#reading-from-a-given-fasta-file][Reading from a Given FASTA file]]
+  - [[#parsing-a-fasta-file][Parsing a FASTA File]]
+- [[#comparing-sequences-in-the-file][Comparing sequences in the file]]
+  - [[#question][Question]]
+  - [[#our-approach][Our Approach]]
+  - [[#creating-a-dictionary-storing-identifiers-and-sequence-lengths-and-printing-it][Creating a dictionary storing identifiers and sequence lengths and printing it]]
+- [[#identification-and-mapping-of-open-reading-frames-orfs][Identification and Mapping of Open Reading Frames (ORFs)]]
+  - [[#question-1][Question]]
+  - [[#our-approach-1][Our Approach]]
+  - [[#finding-reverse-complement-of-sequences][Finding reverse complement of sequences]]
+  - [[#finding-all-orfs-in-a-sequence][Finding all ORFs in a sequence]]
+  - [[#breaking-down-into-parts][Breaking down into parts]]
+  - [[#finding-all-orfs-in-a-single-frame][Finding all ORFs in a single frame]]
+
 * Reading from a Given FASTA file
 (1) How many records are in the file? A record in a FASTA file is defined as a single-line header, followed by lines of sequence data. The header line is distinguished from the sequence data by a greater-than (">") symbol in the first column. The word following the ">" symbol is the identifier of the sequence, and the rest of the line is an optional description of the entry. There should be no space between the ">" and the first letter of the identifier. 
 
@@ -76,10 +92,13 @@ Now we print the sequence identifiers in the dictionary and the number of entrie
   from seqlen_compare import *
   seq_len_compare(fast_dict)
 #+end_src
+
 *** Example sequence
-#+begin_src python :session gdspyt
+#+begin_src python :session gdspyt :tangle ./temp.py
 test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
 #+end_src
+
+#+RESULTS:
 
 * Comparing sequences in the file
 
@@ -235,10 +254,15 @@ For this, when we get the starting position of the ORF in a reverse complement s
       return reversed_sequence
 #+end_src
 
+#+RESULTS:
+
 Testing the above:
 #+begin_src python :session gdspyt :results output  
 print(sequence_reverse(test_sequence))
 #+end_src
+
+#+RESULTS:
+: CTGCTGGCTGGCGCGCCGCCAGCGCTTCCGCGAGCCGCAGCGGGGCCTCTTTCAGGTCTAGAAGTGCGACTGGAGCCCGCCGCTGATACCGGCCGCGAGCTGCGGCTGCAGCCTGATGCACCAGCTTCGGCGGGTGCACAGGCGGCGCATGGAGCGCCGGCCGGTAGAGCCGGGGCAGTTCTGCTAGACCTGCGCGCTCCTGCTAGACGCGCCGCCGATAATGGCGGGCTACCACGACGTAGCGCAGCTGTAGCCGCACCTGCCGTCGCCGCGGCACGCGCTGACCGTCGTGCACCAGCAGCCGGTCAGACACGACTTCCCGAGCGGCGAGCTCGCGTGCTGCTACGAGTTCGCGCCGTGGCTAGGCTCGGACTGGCTTCCGCACTGCTTGTCGGGCATGCCGAAGGGCTACGTCCATAGCCAAGTAGTCTGGCTCCGGCTGCACGGCCAGGTCTGCACCGCGAGCCCGCCGTTGAGCGTATGCCGCAAGCACTACCTTTGCGACCAGCTGCTCGAGCGCGTGAGCCGCGCCGTCCTAGGCCAGCGGATGGCCTACTGCGCCGACCGGCCGGGGCTCGTGCGGCGCGTAGCCGTCCGCGAGCGCGACCGGCAGCTGTTCAGGCCGATGCCGCGCGCGTGCGACGGCCGGCCCGTGCGCACCCCGCAGCGCTACGTGCTTTGCCGGCCGAGCCAGCAGCGCATGCACTGCCTTCACAGCTAGCTTCGCGTTGTTGGCGCGCACGTAGCGCACTGCCGGCCGCACATACGCCCGGCGTAGCAGTTGGGCTGGCCGCGCGTTCGCGTCTAGGTCCCGCCGCGCGACAAGCCAGAGCGCTGCTGCTTCGGGCCGAAGCGCTAGCTGCAGCTGGTACCGCGCCAGGCGTTGCGGCCAAAGCGGCTGATAAGCGGCTATGCGTACGTCCTTCGCGGCGGCCACCTACAGAAGAAGCACGGCAGCCTGCGGGTCGGCTGGCCCAACTCGCTGCGGCCGCACGGCGGCTAGCGCGGCCGCCACCGGTTGCCACGCAAGCACGACTGGCCGCTCGCCCACGTACGCAACGGCAAGGGGGGCTACGACCAGCGCAGCTGGCGGGGGCACTACGGCCGCCGGGGGCGCTGCCGCCGGCTGCTCCTAGGCATGCCGTTGGACGGCCGGCCGCCGACGGCCGACGGCGTGTTCCAGTTCGGA
 
 *** Complement of a sequence
 #+begin_src python :session gdspyt :results output
@@ -262,10 +286,15 @@ print(sequence_reverse(test_sequence))
       return complement
 #+end_src
 
+#+RESULTS:
+
 Testing the above function
 #+begin_src python :session gdspyt :results output  
 print(dna_complement(test_sequence))
 #+end_src
+
+#+RESULTS:
+: TCCGAACTGGAACACGCCGTCGGCCGTCGGCGGCCGGCCGTCCAACGGCATGCCTAGGAGCAGCCGGCGGCAGCGCCCCCGGCGGCCGTAGTGCCCCCGCCAGCTGCGCTGGTCGTAGCCCCCCTTGCCGTTGCGTACGTGGGCGAGCGGCCAGTCGTGCTTGCGTGGCAACCGGTGGCGGCCGCGCTAGCCGCCGTGCGGCCGCAGCGAGTTGGGCCAGCCGACCCGCAGGCTGCCGTGCTTCTTCTGTAGGTGGCCGCCGCGAAGGACGTACGCATAGCCGCTTATCAGCCGCTTTGGCCGCAACGCCTGGCGCGGTACCAGCTGCAGCTAGCGCTTCGGCCCGAAGCAGCAGCGCTCTGGCTTGTCGCGCGGCGGGACCTAGACGCGAACGCGCGGCCAGCCCAACTGCTACGCCGGGCGTATGTGCGGCCGGCAGTGCGCTACGTGCGCGCCAACAACGCGAAGCTAGCTGTGAAGGCAGTGCATGCGCTGCTGGCTCGGCCGGCAAAGCACGTAGCGCTGCGGGGTGCGCACGGGCCGGCCGTCGCACGCGCGCGGCATCGGCCTGAACAGCTGCCGGTCGCGCTCGCGGACGGCTACGCGCCGCACGAGCCCCGGCCGGTCGGCGCAGTAGGCCATCCGCTGGCCTAGGACGGCGCGGCTCACGCGCTCGAGCAGCTGGTCGCAAAGGTAGTGCTTGCGGCATACGCTCAACGGCGGGCTCGCGGTGCAGACCTGGCCGTGCAGCCGGAGCCAGACTACTTGGCTATGGACGTAGCCCTTCGGCATGCCCGACAAGCAGTGCGGAAGCCAGTCCGAGCCTAGCCACGGCGCGAACTCGTAGCAGCACGCGAGCTCGCCGCTCGGGAAGTCGTGTCTGACCGGCTGCTGGTGCACGACGGTCAGCGCGTGCCGCGGCGACGGCAGGTGCGGCTACAGCTGCGCTACGTCGTGGTAGCCCGCCATTATCGGCGGCGCGTCTAGCAGGAGCGCGCAGGTCTAGCAGAACTGCCCCGGCTCTACCGGCCGGCGCTCCATGCGCCGCCTGTGCACCCGCCGAAGCTGGTGCATCAGGCTGCAGCCGCAGCTCGCGGCCGGTATCAGCGGCGGGCTCCAGTCGCACTTCTAGACCTGAAAGAGGCCCCGCTGCGGCTCGCGGAAGCGCTGGCGGCGCGCCAGCCAGCAG
 
 *** Reverse complement of a sequence
 #+begin_src python :session gdspyt
@@ -275,10 +304,15 @@ print(dna_complement(test_sequence))
     
 #+end_src
 
+#+RESULTS:
+
 Testing the above function
 #+begin_src python :session gdspyt :results output
 print(reverse_complement(test_sequence))
 #+end_src
+
+#+RESULTS:
+: GACGACCGACCGCGCGGCGGTCGCGAAGGCGCTCGGCGTCGCCCCGGAGAAAGTCCAGATCTTCACGCTGACCTCGGGCGGCGACTATGGCCGGCGCTCGACGCCGACGTCGGACTACGTGGTCGAAGCCGCCCACGTGTCCGCCGCGTACCTCGCGGCCGGCCATCTCGGCCCCGTCAAGACGATCTGGACGCGCGAGGACGATCTGCGCGGCGGCTATTACCGCCCGATGGTGCTGCATCGCGTCGACATCGGCGTGGACGGCAGCGGCGCCGTGCGCGACTGGCAGCACGTGGTCGTCGGCCAGTCTGTGCTGAAGGGCTCGCCGCTCGAGCGCACGACGATGCTCAAGCGCGGCACCGATCCGAGCCTGACCGAAGGCGTGACGAACAGCCCGTACGGCTTCCCGATGCAGGTATCGGTTCATCAGACCGAGGCCGACGTGCCGGTCCAGACGTGGCGCTCGGGCGGCAACTCGCATACGGCGTTCGTGATGGAAACGCTGGTCGACGAGCTCGCGCACTCGGCGCGGCAGGATCCGGTCGCCTACCGGATGACGCGGCTGGCCGGCCCCGAGCACGCCGCGCATCGGCAGGCGCTCGCGCTGGCCGTCGACAAGTCCGGCTACGGCGCGCGCACGCTGCCGGCCGGGCACGCGTGGGGCGTCGCGATGCACGAAACGGCCGGCTCGGTCGTCGCGTACGTGACGGAAGTGTCGATCGAAGCGCAACAACCGCGCGTGCATCGCGTGACGGCCGGCGTGTATGCGGGCCGCATCGTCAACCCGACCGGCGCGCAAGCGCAGATCCAGGGCGGCGCGCTGTTCGGTCTCGCGACGACGAAGCCCGGCTTCGCGATCGACGTCGACCATGGCGCGGTCCGCAACGCCGGTTTCGCCGACTATTCGCCGATACGCATGCAGGAAGCGCCGCCGGTGGATGTCTTCTTCGTGCCGTCGGACGCCCAGCCGACCGGGTTGAGCGACGCCGGCGTGCCGCCGATCGCGCCGGCGGTGGCCAACGGTGCGTTCGTGCTGACCGGCGAGCGGGTGCATGCGTTGCCGTTCCCCCCGATGCTGGTCGCGTCGACCGCCCCCGTGATGCCGGCGGCCCCCGCGACGGCGGCCGACGAGGATCCGTACGGCAACCTGCCGGCCGGCGGCTGCCGGCTGCCGCACAAGGTCAAGCCT
 
 ** Finding all ORFs in a sequence
 Orf storage scheme:
@@ -509,17 +543,21 @@ Having done the above, it is easy to scale it up for all FASTA sequences in a fi
 
 
 ** Finding all ORFs in a single frame
-#+begin_src python
+#+begin_src python :session gdspyt :tangle ./temp.py
   def frame_orfs(frame):
       #define the start and stop codons
       start_codon = "ATG"
+      print(len(frame))
       stop_codon_tuple = ("TAA", "TAG", "TGA")
-    
-      #trimming the frame to number of nucleotides in multiples of 3
+
+      #trimming the frame (from the end) to number of nucleotides in multiples of 3
+      trimmed_frame = ""
       for i in range((len(frame) - (len(frame)%3))):
           trimmed_frame = trimmed_frame + frame[i]
 
       #now get all the positions of start and stop codons
+      start_pos_list = []
+      stop_pos_list = []
       for i in range((len(trimmed_frame) - 3)):
           codon = trimmed_frame[i:i+3]
 
@@ -534,24 +572,47 @@ Having done the above, it is easy to scale it up for all FASTA sequences in a fi
           #incrementing i by 3
           i = i + 3
 
+      print(start_pos_list)
+      print(stop_pos_list)
+
       #Now getting the ORFs.     
+      orf_dict = {}
       for start_position in start_pos_list:
-          i = 1
+          i = 1 #initializing a variable to store the ORF number
+          # a new list of stop positions is to be built which will contain stop positions after the start position
+          new_stop_pos_list = []
           for stop_position in stop_pos_list:
+              if stop_position > start_position:
+                  new_stop_pos_list.append(stop_position)
+
+          print(new_stop_pos_list)
+
+          for stop_position in new_stop_pos_list:
+              #print(stop_position)
               orf_key = "ORF"+str(i)
               orf_dict[orf_key] = [[],
                                         start_position,
                                         stop_position]
-              for j in range(start_position:stop_position):
+              for j in range(start_position, stop_position):
                   orf_dict[orf_key][0].append(trimmed_frame[j:j+3])
 
           #updating ORF number 
           i = i + 1
-
       return orf_dict
-        
+
 #+end_src
 
+#+RESULTS:
+
+*** Testing the Above Function
+#+begin_src python :session gdspyt :results output :tangle ./temp.py
+  print(frame_orfs(test_sequence))
+#+end_src
+
+#+RESULTS:
+: 1189
+: [135, 271, 318, 412, 444, 600, 708, 762, 937, 948, 1023]
+: [5, 286, 407, 562, 640, 760, 763, 839, 967, 970, 1010, 1072, 1102, 1124]
 
 #+begin_src python
   #in this function we find all ORFs in a sequence, that is, sequences which start with ATG and end with any of the stop codons TAA, TAG and TGA
