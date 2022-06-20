@@ -1,5 +1,64 @@
 test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
 
+def frame_orfs(frame):
+    #define the start and stop codons
+    start_codon = "ATG"
+    # print("Calculating all ORFs in frame of length", len(frame), "...")
+    stop_codon_tuple = ("TAA", "TAG", "TGA")
+
+    #trimming the frame (from the end) to number of nucleotides in multiples of 3
+    trimmed_frame = ""
+    for i in range((len(frame) - (len(frame)%3))):
+        trimmed_frame = trimmed_frame + frame[i]
+
+    #now get all the positions of start and stop codons
+    start_pos_list = []
+    stop_pos_list = []
+
+    #initialize the while loop variable
+    h = 0
+    while (h <= (len(trimmed_frame) - 3)):
+        codon = trimmed_frame[h:h+3]
+
+        #storing the start positions 
+        if codon == start_codon:
+            start_pos_list.append(h)
+
+        #storing the stop positions 
+        if codon in stop_codon_tuple:
+            # print(codon)
+            stop_pos_list.append(h)
+
+        #incrementing i by 3
+        h = h + 3
+
+    # print(start_pos_list)
+    # print(stop_pos_list)
+
+    #Now getting the ORFs.     
+    orf_dict = {}
+    i = 1 #initializing a variable to store the ORF number
+    for start_position in start_pos_list:
+        # a new list of stop positions is to be built which will contain stop positions after the start position
+        new_stop_pos_list = []
+        for stop_position in stop_pos_list:
+            if stop_position > start_position:
+                new_stop_pos_list.append(stop_position)
+
+        #print(new_stop_pos_list)
+        for stop_posi in new_stop_pos_list:
+            # print(trimmed_frame[stop_posi:stop_posi+3])
+            orf_key = "ORF"+str(i)
+            orf_dict[orf_key] = [[],
+                                 start_position + 1, #+1 to start indexing from 1
+                                 stop_posi + 3]
+            for j in range(start_position, stop_posi+1):
+                orf_dict[orf_key][0].append(trimmed_frame[j:j+3])
+            #updating ORF number 
+            i = i + 1
+
+    return orf_dict
+
 #This is a simple function to reverse a string
 def sequence_reverse(sequence):
     """
@@ -71,6 +130,46 @@ def frame_extract(sequence):
 
     return(frame_dictionary)
 
-frm_dic = frame_extract(test_sequence)
-for keys, items in frm_dic.items():
-    print(keys, "\n", items, "\n")
+def sequence_orfs(sequence):
+    """This function finds and returns all the ORFs in all frames of a sequence."""
+    #initializing the dictionary to store all the frame information of the sequence 
+    sequence_orfs_dictionary = {}
+
+    #calling the frame_extract() to find all the frames and store it in frames_dictionary variable 
+    frames_dictionary = frame_extract(sequence)
+
+    #this loop goes through all the frames in the dictionary, calls the frame_orfs() function for each frame and stores the output in frames_dictionary.    
+    for frame, frame_sequence in frames_dictionary.items():
+        sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence)
+
+    #for frame 5, 6, and 7, which are the reverse complement frames, we need to alter the start and stop positions of the frame, so that they are with respect to the forward sequence
+
+    reverse_frames_tuple = ("Frame4", "Frame5", "Frame6")
+
+    #calculating the length of the sequence
+    seqlen = len(sequence)
+
+    # now altering the start and stop positions 
+    for frame, ORF_dict in sequence_orfs_dictionary.items():
+        if frame in reverse_frames_tuple:
+            for orfs, info in ORF_dict.items():
+                info[1] = seqlen - info[1]
+                info[2] = seqlen - info[2]
+
+    return sequence_orfs_dictionary
+
+def print_sequence_orfs(sequence):
+    """This function prints the ORF information of a sequence in a presentable format."""
+
+    seq_orf_info = sequence_orfs(sequence)
+
+    for frame, frame_dict in seq_orf_info.items():
+        print("** _ _ _ _ _ _", frame, "_ _ _ _ _ _")
+        print("Retrieving", len(frame_dict), "sequences in", frame, "...")
+        for orf, orf_dict in frame_dict.items():
+            print("***", orf, "\n", orf_dict[0][0], orf_dict[0][1], "...", orf_dict[0][-2], orf_dict[0][-1])
+            print(" ", orf_dict[1], "           ", orf_dict[2])
+
+    return 0
+
+print_sequence_orfs(test_sequence)
