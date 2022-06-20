@@ -1,59 +1,76 @@
 test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
 
-def frame_orfs(frame):
-    #define the start and stop codons
-    start_codon = "ATG"
-    print(len(frame))
-    stop_codon_tuple = ("TAA", "TAG", "TGA")
+#This is a simple function to reverse a string
+def sequence_reverse(sequence):
+    """
+    This program finds the reverse of the sequence entered. 
+    """
+    #first we initialize the string variable which will contain our reversed string
+    reversed_sequence = ''
+    #next we initialize our loop variable to the value of the last index of 'sequence'
+    i=len(sequence)-1
+    #we use a while loop, which continues till i is greater than or equal to zero 
+    while i>=0:
+        #we concatenate each letter from the end of the sequence entered to form a new string which has the order reversed
+        reversed_sequence = reversed_sequence+sequence[i]
+        #in each iteration we decrease the value of the variable i to maintain the loop condition
+        i=i-1
 
-    #trimming the frame (from the end) to number of nucleotides in multiples of 3
-    trimmed_frame = ""
-    for i in range((len(frame) - (len(frame)%3))):
-        trimmed_frame = trimmed_frame + frame[i]
+    #finally, exit from the function and return the reversed sequence    
+    return reversed_sequence
 
-    #now get all the positions of start and stop codons
-    start_pos_list = []
-    stop_pos_list = []
-    for i in range((len(trimmed_frame) - 3)):
-        codon = trimmed_frame[i:i+3]
+#this function returns the complement of a DNA sequence entered, NOT the reverse complement
+def dna_complement(sequence):
+    """
+    This function returns the complementary sequence of a DNA sequence entered.
 
-        #storing the start positions 
-        if codon == start_codon:
-            start_pos_list.append(i)
+    """
+    #first we define a dictionary containing all the bases and their complements, even in lowecase
+    bases_dict = {"A":"T", "a":"t", "C":"G", "c":"g", "G":"C", "g":"c", "T":"A", "t":"a", "N":"N", "n":"n"}
 
-        #storing the stop positions 
-        if codon in stop_codon_tuple:
-            stop_pos_list.append(i)
+    #we initialize a string variable to store the complementary sequence
+    complement = ''
 
-        #incrementing i by 3
-        i = i + 3
+    #next we loop over our sequence and make a new complementary string
+    for i in sequence:
+        complement = complement + bases_dict[i]
 
-    print(start_pos_list)
-    print(stop_pos_list)
+    #finally, return the complement sequence and exit from the function
+    return complement
 
-    #Now getting the ORFs.     
-    orf_dict = {}
-    for start_position in start_pos_list:
-        i = 1 #initializing a variable to store the ORF number
-        # a new list of stop positions is to be built which will contain stop positions after the start position
-        new_stop_pos_list = []
-        for stop_position in stop_pos_list:
-            if stop_position > start_position:
-                new_stop_pos_list.append(stop_position)
+#a simple function which calls the reverse string and sequence complement functions to calculate the reverse complements
+def reverse_complement(sequence):
+    return(dna_complement(sequence_reverse(sequence)))
 
-        print(new_stop_pos_list)
+def frame_extract(sequence):
+    """This function extracts all the 6 ORFs from a given sequence."""
 
-        for stop_position in new_stop_pos_list:
-            #print(stop_position)
-            orf_key = "ORF"+str(i)
-            orf_dict[orf_key] = [[],
-                                      start_position,
-                                      stop_position]
-            for j in range(start_position, stop_position):
-                orf_dict[orf_key][0].append(trimmed_frame[j:j+3])
+    #initializing the dictionary which will store all the sequences of all the frames 
+    frame_dictionary = {}
 
-        #updating ORF number 
-        i = i + 1
-    return orf_dict
+    #this variable stores the frame numbers 
+    frame_no = 1
 
-print(frame_orfs(test_sequence))
+    #loop extracting frames 1, 2 and 3
+    for i in range(3):
+        frame_name = "Frame" + str(frame_no)
+        frame_dictionary[frame_name] = sequence[i:]
+        frame_no = frame_no + 1
+
+    # print(frame_no)
+
+    sequence_reverse_complement = reverse_complement(sequence)
+
+    #loop extracting frames 4, 5, and 6
+    for i in range(3):
+        frame_name = "Frame" + str(frame_no)
+        frame_dictionary[frame_name] = sequence_reverse_complement[i:]
+        frame_no = frame_no + 1
+
+    # print(frame_no)
+
+    return(frame_dictionary)
+
+frm_dic = frame_extract(test_sequence)
+for keys, items in frm_dic.items():
+    print(keys, "\n", items, "\n")

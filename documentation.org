@@ -1,21 +1,19 @@
 #+title:A set of sequence manipulation code
 
 * Table of Contents                                                     :toc:
-- [[#reading-from-a-given-fasta-file][Reading from a Given FASTA file]]
+- [[#reading-and-comparing-sequences-in-a-given-fasta-file][Reading and comparing sequences in a Given FASTA file]]
   - [[#parsing-a-fasta-file][Parsing a FASTA File]]
-- [[#comparing-sequences-in-the-file][Comparing sequences in the file]]
-  - [[#question][Question]]
-  - [[#our-approach][Our Approach]]
-  - [[#creating-a-dictionary-storing-identifiers-and-sequence-lengths-and-printing-it][Creating a dictionary storing identifiers and sequence lengths and printing it]]
+  - [[#comparing-sequences-in-the-file][Comparing sequences in the file]]
 - [[#identification-and-mapping-of-open-reading-frames-orfs][Identification and Mapping of Open Reading Frames (ORFs)]]
-  - [[#question-1][Question]]
-  - [[#our-approach-1][Our Approach]]
-  - [[#finding-reverse-complement-of-sequences][Finding reverse complement of sequences]]
-  - [[#finding-all-orfs-in-a-sequence][Finding all ORFs in a sequence]]
-  - [[#breaking-down-into-parts][Breaking down into parts]]
+  - [[#question][Question]]
+  - [[#approach][Approach]]
   - [[#finding-all-orfs-in-a-single-frame][Finding all ORFs in a single frame]]
+  - [[#finding-all-the-frames-of-a-sequence][Finding all the frames of a sequence]]
+  - [[#finding-all-orfs-in-a-sequence][Finding all ORFs in a sequence]]
+  - [[#printing-all-orfs-in-a-sequence][Printing all ORFs in a sequence]]
+  - [[#comparing-and-printing-the-longest-orf-of-a-sequence][Comparing and printing the longest ORF of a sequence]]
 
-* Reading from a Given FASTA file
+* Reading and comparing sequences in a Given FASTA file
 (1) How many records are in the file? A record in a FASTA file is defined as a single-line header, followed by lines of sequence data. The header line is distinguished from the sequence data by a greater-than (">") symbol in the first column. The word following the ">" symbol is the identifier of the sequence, and the rest of the line is an optional description of the entry. There should be no space between the ">" and the first letter of the identifier. 
 
 Separate functions for the following tasks are to be written:
@@ -50,6 +48,8 @@ Separate functions for the following tasks are to be written:
 
 #+end_src
 
+#+RESULTS:
+
 *** Putting the sequences of the file in a dictionary
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py :comments org
   def multi_FASTA_to_dict(FASTA_file_object):
@@ -76,6 +76,9 @@ Separate functions for the following tasks are to be written:
       return sequence_dictionary
 #+end_src
 
+#+RESULTS:
+: None
+
 *** Printing file information 
 Now we print the sequence identifiers in the dictionary and the number of entries in the multi-FASTA file. 
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py :comments org 
@@ -87,11 +90,15 @@ Now we print the sequence identifiers in the dictionary and the number of entrie
   print("\nThere are a total of", len(fast_dict), "sequences in the file.")
 #+end_src
 
+#+RESULTS:
+
 *** Printing length information of sequences
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py :comments org 
   from seqlen_compare import *
   seq_len_compare(fast_dict)
 #+end_src
+
+#+RESULTS:
 
 *** Example sequence
 #+begin_src python :session gdspyt :tangle ./temp.py
@@ -100,17 +107,17 @@ test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGG
 
 #+RESULTS:
 
-* Comparing sequences in the file
+** Comparing sequences in the file
 
-** Question 
+*** Question 
 #+begin_quote
 (2) What are the lengths of the sequences in the file? What is the longest sequence and what is the shortest sequence? Is there more than one longest or shortest sequence? What are their identifiers? 
 #+end_quote
-** Our Approach 
+*** Our Approach 
 The way to go about this is:
 - Find the length of each seqeunce in the dictionary and put this in another dictionary with keys as the identifiers and values as the length. Use this dictionary for comparison.
 - Now, find the longest and shortest sequence and print their identifiers and lengths.
-** Creating a dictionary storing identifiers and sequence lengths and printing it 
+*** Creating a dictionary storing identifiers and sequence lengths and printing it 
 #+begin_src python :tangle ./seqlen_compare.py :comments org :mkdirp 
   def seq_len_compare(seq_dict):
       """This function compares the length of DNA sequences in a dictionary
@@ -185,6 +192,9 @@ The way to go about this is:
       return 0
 #+end_src
 
+#+RESULTS:
+: None
+
 * Identification and Mapping of Open Reading Frames (ORFs)
 ** Question 
 #+begin_quote
@@ -220,8 +230,8 @@ ATGAAAAAA
 does not have any stop codon in reading frame 1, we do not consider it to be an ORF in reading frame 1. 
 #+end_quote
 
-** Our Approach 
-*** How we define ORFs?
+** Approach 
+*** How we define the (open) reading frames for a sequence?
 Open Reading Frames are substrings of DNA sequence strings which start with a start codon ATG and end with a stop codon, TAA, TAG or TGA.
 
 Now, a given sequence will have 6 reading frames. Given a sequence, its easy to understand the first 3: we start accepting codons in multiples of 3 from the first position, the second and the third. 
@@ -231,91 +241,8 @@ What about the frames 4, 5 and 6? For them, we take the reverse strand, that is,
 The problem with the reverse strand is, we also have to map the starting and ending positions of the ORF, if any.
 
 For this, when we get the starting position of the ORF in a reverse complement string, we use the subtract that position from the total length of the forward sequence. That gives us the starting position of the orf in the reverse direction, in the forward string itself.
-** Finding reverse complement of sequences
-*** Revese of a Sequence
-#+begin_src python :session gdspyt
-  #This is a simple function to reverse a string
-  def sequence_reverse(sequence):
-      """
-      This program finds the reverse of the sequence entered. 
-      """
-      #first we initialize the string variable which will contain our reversed string
-      reversed_sequence = ''
-      #next we initialize our loop variable to the value of the last index of 'sequence'
-      i=len(sequence)-1
-      #we use a while loop, which continues till i is greater than or equal to zero 
-      while i>=0:
-          #we concatenate each letter from the end of the sequence entered to form a new string which has the order reversed
-          reversed_sequence = reversed_sequence+sequence[i]
-          #in each iteration we decrease the value of the variable i to maintain the loop condition
-          i=i-1
-
-      #finally, exit from the function and return the reversed sequence    
-      return reversed_sequence
-#+end_src
-
-#+RESULTS:
-
-Testing the above:
-#+begin_src python :session gdspyt :results output  
-print(sequence_reverse(test_sequence))
-#+end_src
-
-#+RESULTS:
-: CTGCTGGCTGGCGCGCCGCCAGCGCTTCCGCGAGCCGCAGCGGGGCCTCTTTCAGGTCTAGAAGTGCGACTGGAGCCCGCCGCTGATACCGGCCGCGAGCTGCGGCTGCAGCCTGATGCACCAGCTTCGGCGGGTGCACAGGCGGCGCATGGAGCGCCGGCCGGTAGAGCCGGGGCAGTTCTGCTAGACCTGCGCGCTCCTGCTAGACGCGCCGCCGATAATGGCGGGCTACCACGACGTAGCGCAGCTGTAGCCGCACCTGCCGTCGCCGCGGCACGCGCTGACCGTCGTGCACCAGCAGCCGGTCAGACACGACTTCCCGAGCGGCGAGCTCGCGTGCTGCTACGAGTTCGCGCCGTGGCTAGGCTCGGACTGGCTTCCGCACTGCTTGTCGGGCATGCCGAAGGGCTACGTCCATAGCCAAGTAGTCTGGCTCCGGCTGCACGGCCAGGTCTGCACCGCGAGCCCGCCGTTGAGCGTATGCCGCAAGCACTACCTTTGCGACCAGCTGCTCGAGCGCGTGAGCCGCGCCGTCCTAGGCCAGCGGATGGCCTACTGCGCCGACCGGCCGGGGCTCGTGCGGCGCGTAGCCGTCCGCGAGCGCGACCGGCAGCTGTTCAGGCCGATGCCGCGCGCGTGCGACGGCCGGCCCGTGCGCACCCCGCAGCGCTACGTGCTTTGCCGGCCGAGCCAGCAGCGCATGCACTGCCTTCACAGCTAGCTTCGCGTTGTTGGCGCGCACGTAGCGCACTGCCGGCCGCACATACGCCCGGCGTAGCAGTTGGGCTGGCCGCGCGTTCGCGTCTAGGTCCCGCCGCGCGACAAGCCAGAGCGCTGCTGCTTCGGGCCGAAGCGCTAGCTGCAGCTGGTACCGCGCCAGGCGTTGCGGCCAAAGCGGCTGATAAGCGGCTATGCGTACGTCCTTCGCGGCGGCCACCTACAGAAGAAGCACGGCAGCCTGCGGGTCGGCTGGCCCAACTCGCTGCGGCCGCACGGCGGCTAGCGCGGCCGCCACCGGTTGCCACGCAAGCACGACTGGCCGCTCGCCCACGTACGCAACGGCAAGGGGGGCTACGACCAGCGCAGCTGGCGGGGGCACTACGGCCGCCGGGGGCGCTGCCGCCGGCTGCTCCTAGGCATGCCGTTGGACGGCCGGCCGCCGACGGCCGACGGCGTGTTCCAGTTCGGA
-
-*** Complement of a sequence
-#+begin_src python :session gdspyt :results output
-  #this function returns the complement of a DNA sequence entered, NOT the reverse complement
-  def dna_complement(sequence):
-      """
-      This function returns the complementary sequence of a DNA sequence entered.
-
-      """
-      #first we define a dictionary containing all the bases and their complements, even in lowecase
-      bases_dict = {"A":"T", "a":"t", "C":"G", "c":"g", "G":"C", "g":"c", "T":"A", "t":"a", "N":"N", "n":"n"}
-
-      #we initialize a string variable to store the complementary sequence
-      complement = ''
-
-      #next we loop over our sequence and make a new complementary string
-      for i in sequence:
-          complement = complement + bases_dict[i]
-
-      #finally, return the complement sequence and exit from the function
-      return complement
-#+end_src
-
-#+RESULTS:
-
-Testing the above function
-#+begin_src python :session gdspyt :results output  
-print(dna_complement(test_sequence))
-#+end_src
-
-#+RESULTS:
-: TCCGAACTGGAACACGCCGTCGGCCGTCGGCGGCCGGCCGTCCAACGGCATGCCTAGGAGCAGCCGGCGGCAGCGCCCCCGGCGGCCGTAGTGCCCCCGCCAGCTGCGCTGGTCGTAGCCCCCCTTGCCGTTGCGTACGTGGGCGAGCGGCCAGTCGTGCTTGCGTGGCAACCGGTGGCGGCCGCGCTAGCCGCCGTGCGGCCGCAGCGAGTTGGGCCAGCCGACCCGCAGGCTGCCGTGCTTCTTCTGTAGGTGGCCGCCGCGAAGGACGTACGCATAGCCGCTTATCAGCCGCTTTGGCCGCAACGCCTGGCGCGGTACCAGCTGCAGCTAGCGCTTCGGCCCGAAGCAGCAGCGCTCTGGCTTGTCGCGCGGCGGGACCTAGACGCGAACGCGCGGCCAGCCCAACTGCTACGCCGGGCGTATGTGCGGCCGGCAGTGCGCTACGTGCGCGCCAACAACGCGAAGCTAGCTGTGAAGGCAGTGCATGCGCTGCTGGCTCGGCCGGCAAAGCACGTAGCGCTGCGGGGTGCGCACGGGCCGGCCGTCGCACGCGCGCGGCATCGGCCTGAACAGCTGCCGGTCGCGCTCGCGGACGGCTACGCGCCGCACGAGCCCCGGCCGGTCGGCGCAGTAGGCCATCCGCTGGCCTAGGACGGCGCGGCTCACGCGCTCGAGCAGCTGGTCGCAAAGGTAGTGCTTGCGGCATACGCTCAACGGCGGGCTCGCGGTGCAGACCTGGCCGTGCAGCCGGAGCCAGACTACTTGGCTATGGACGTAGCCCTTCGGCATGCCCGACAAGCAGTGCGGAAGCCAGTCCGAGCCTAGCCACGGCGCGAACTCGTAGCAGCACGCGAGCTCGCCGCTCGGGAAGTCGTGTCTGACCGGCTGCTGGTGCACGACGGTCAGCGCGTGCCGCGGCGACGGCAGGTGCGGCTACAGCTGCGCTACGTCGTGGTAGCCCGCCATTATCGGCGGCGCGTCTAGCAGGAGCGCGCAGGTCTAGCAGAACTGCCCCGGCTCTACCGGCCGGCGCTCCATGCGCCGCCTGTGCACCCGCCGAAGCTGGTGCATCAGGCTGCAGCCGCAGCTCGCGGCCGGTATCAGCGGCGGGCTCCAGTCGCACTTCTAGACCTGAAAGAGGCCCCGCTGCGGCTCGCGGAAGCGCTGGCGGCGCGCCAGCCAGCAG
-
-*** Reverse complement of a sequence
-#+begin_src python :session gdspyt
-  #a simple function which calls the reverse string and sequence complement functions to calculate the reverse complements
-  def reverse_complement(sequence):
-      return(dna_complement(sequence_reverse(sequence)))
-    
-#+end_src
-
-#+RESULTS:
-
-Testing the above function
-#+begin_src python :session gdspyt :results output
-print(reverse_complement(test_sequence))
-#+end_src
-
-#+RESULTS:
-: GACGACCGACCGCGCGGCGGTCGCGAAGGCGCTCGGCGTCGCCCCGGAGAAAGTCCAGATCTTCACGCTGACCTCGGGCGGCGACTATGGCCGGCGCTCGACGCCGACGTCGGACTACGTGGTCGAAGCCGCCCACGTGTCCGCCGCGTACCTCGCGGCCGGCCATCTCGGCCCCGTCAAGACGATCTGGACGCGCGAGGACGATCTGCGCGGCGGCTATTACCGCCCGATGGTGCTGCATCGCGTCGACATCGGCGTGGACGGCAGCGGCGCCGTGCGCGACTGGCAGCACGTGGTCGTCGGCCAGTCTGTGCTGAAGGGCTCGCCGCTCGAGCGCACGACGATGCTCAAGCGCGGCACCGATCCGAGCCTGACCGAAGGCGTGACGAACAGCCCGTACGGCTTCCCGATGCAGGTATCGGTTCATCAGACCGAGGCCGACGTGCCGGTCCAGACGTGGCGCTCGGGCGGCAACTCGCATACGGCGTTCGTGATGGAAACGCTGGTCGACGAGCTCGCGCACTCGGCGCGGCAGGATCCGGTCGCCTACCGGATGACGCGGCTGGCCGGCCCCGAGCACGCCGCGCATCGGCAGGCGCTCGCGCTGGCCGTCGACAAGTCCGGCTACGGCGCGCGCACGCTGCCGGCCGGGCACGCGTGGGGCGTCGCGATGCACGAAACGGCCGGCTCGGTCGTCGCGTACGTGACGGAAGTGTCGATCGAAGCGCAACAACCGCGCGTGCATCGCGTGACGGCCGGCGTGTATGCGGGCCGCATCGTCAACCCGACCGGCGCGCAAGCGCAGATCCAGGGCGGCGCGCTGTTCGGTCTCGCGACGACGAAGCCCGGCTTCGCGATCGACGTCGACCATGGCGCGGTCCGCAACGCCGGTTTCGCCGACTATTCGCCGATACGCATGCAGGAAGCGCCGCCGGTGGATGTCTTCTTCGTGCCGTCGGACGCCCAGCCGACCGGGTTGAGCGACGCCGGCGTGCCGCCGATCGCGCCGGCGGTGGCCAACGGTGCGTTCGTGCTGACCGGCGAGCGGGTGCATGCGTTGCCGTTCCCCCCGATGCTGGTCGCGTCGACCGCCCCCGTGATGCCGGCGGCCCCCGCGACGGCGGCCGACGAGGATCCGTACGGCAACCTGCCGGCCGGCGGCTGCCGGCTGCCGCACAAGGTCAAGCCT
-
-** Finding all ORFs in a sequence
-Orf storage scheme:
+*** Data storage scheme
+Given the amount of information we have to process, its necessary to define a data structure for the same. 
 #+begin_quote
 Master Dictionary -> Sequence Dictionary -> Frame Dictionary -> ORF Dictionary[codon_list, starting position, ending position]
 #+end_quote
@@ -500,9 +427,11 @@ Master Dictionary -> Sequence Dictionary -> Frame Dictionary -> ORF Dictionary[c
                         stop_index_in_frame]}}}
 #+end_src
 
-** Breaking down into parts
-Having defined the data structure, let us break up the scheme of work into granular functions
-1. Function which takes the sequence, starts from the beginning and detects all ORFs and returns a dictionary of the type:
+#+RESULTS:
+
+*** Breaking down into parts
+Having defined the data structure, let us break up the scheme of work into granular functions. 
+1) Function which takes the sequence, starts from the beginning and detects all ORFs and returns a dictionary of the type:
    #+begin_src python
      orf_dictionary = {
          ORF1:[["start_codon, ...., stop_codon"]
@@ -518,36 +447,42 @@ Having defined the data structure, let us break up the scheme of work into granu
                starting_position,
                stopping_position]}
    #+end_src
+
+   #+RESULTS:
    
-2. Function which extracts all frames from a given sequence and returns a dictionary of type:
+2) Function which extracts all frames from a given sequence and returns a dictionary of type:
    #+begin_src python
      frame_dictionary = {
          frame_1:sequence1,
-         frame_2:sequence2,
+         frame_2:seqeunce2,
          .
          .
          .,
-         frame_3:sequence3}
+         frame_6:sequence6}
    #+end_src
+
+   #+RESULTS:
    
-3. Function which takes *a sequence* and *returns a dictionary* all the ORFs with their starting and stopping position in /all the frames/ and prints them.
+3) Function which takes *a sequence* and *returns a dictionary* of all the ORFs with their starting and stopping position in /all the frames/ and prints them.
 
-4. Function which prints all ORF information of *a sequence*.
+4) Function which *prints* all ORF information of *a sequence*.
 
-5. Function which compares the lengths of ORFs and returns the *longest ORF(s)* of *a sequence*.
+5) Function which compares the lengths of ORFs and returns the *longest ORF(s)* of *a sequence*.
 
-Having done the above, it is easy to scale it up for all FASTA sequences in a file.
-1. Function which prints ORF information of all sequences in the file.
-2. Function which compares the ORFs of a file and prints out the longest
+   Having done the above, it is easy to scale it up for all FASTA sequences in a file.
+   
+6) Function which prints ORF information of all sequences in the file.
+   
+7) Function which compares the ORFs of a file and prints out the longest
    and shortest ORFs.
 
-
 ** Finding all ORFs in a single frame
-#+begin_src python :session gdspyt :tangle ./temp.py
+*** The =frame_orfs()= function 
+#+begin_src python :session gdspyt :tangle no 
   def frame_orfs(frame):
       #define the start and stop codons
       start_codon = "ATG"
-      print(len(frame))
+      print("Calculating all ORFs in frame of length", len(frame), "...")
       stop_codon_tuple = ("TAA", "TAG", "TGA")
 
       #trimming the frame (from the end) to number of nucleotides in multiples of 3
@@ -567,6 +502,7 @@ Having done the above, it is easy to scale it up for all FASTA sequences in a fi
 
           #storing the stop positions 
           if codon in stop_codon_tuple:
+              # print(codon)
               stop_pos_list.append(i)
 
           #incrementing i by 3
@@ -577,43 +513,46 @@ Having done the above, it is easy to scale it up for all FASTA sequences in a fi
 
       #Now getting the ORFs.     
       orf_dict = {}
+      i = 1 #initializing a variable to store the ORF number
       for start_position in start_pos_list:
-          i = 1 #initializing a variable to store the ORF number
           # a new list of stop positions is to be built which will contain stop positions after the start position
           new_stop_pos_list = []
           for stop_position in stop_pos_list:
               if stop_position > start_position:
                   new_stop_pos_list.append(stop_position)
 
-          print(new_stop_pos_list)
-
-          for stop_position in new_stop_pos_list:
-              #print(stop_position)
+          #print(new_stop_pos_list)
+          for stop_posi in new_stop_pos_list:
+              # print(trimmed_frame[stop_posi:stop_posi+3])
               orf_key = "ORF"+str(i)
               orf_dict[orf_key] = [[],
-                                        start_position,
-                                        stop_position]
-              for j in range(start_position, stop_position):
+                                   start_position,
+                                   stop_posi + 3]
+              for j in range(start_position, stop_posi+1):
                   orf_dict[orf_key][0].append(trimmed_frame[j:j+3])
+              #updating ORF number 
+              i = i + 1
 
-          #updating ORF number 
-          i = i + 1
       return orf_dict
 
 #+end_src
 
 #+RESULTS:
 
-*** Testing the Above Function
-#+begin_src python :session gdspyt :results output :tangle ./temp.py
-  print(frame_orfs(test_sequence))
+*** Testing the =frame_orfs()= function
+#+begin_src python :session gdspyt :tangle no
+  orfdict = frame_orfs(test_sequence)
+  print("Found", len(orfdict), "sequences in frame.")
+  for ORF, info in orfdict.items():
+      print(ORF, "\n", info[0], "\n", info[1], info[2])
+      # print(ORF, "\n", info[0][0], info[0][1], info[0][2], "...", info[0][-2], info[0][-1], "\n", info[1], info[2])
 #+end_src
 
 #+RESULTS:
-: 1189
-: [135, 271, 318, 412, 444, 600, 708, 762, 937, 948, 1023]
-: [5, 286, 407, 562, 640, 760, 763, 839, 967, 970, 1010, 1072, 1102, 1124]
 
+
+Thus, we have successfully found all of the ORFs in one single frame.
+*** Previous code
 #+begin_src python
   #in this function we find all ORFs in a sequence, that is, sequences which start with ATG and end with any of the stop codons TAA, TAG and TGA
   def ORF_find(seq_dictionary):
@@ -678,14 +617,9 @@ Having done the above, it is easy to scale it up for all FASTA sequences in a fi
                   frame_dictionary["Frame_" + str(i+1)] = frame_list
 
           orf_dictionary[identifiers] = frame_dictionary
-
-
-
-
-
-
 #+end_src
 
+#+RESULTS:
 
 Test for the None assignment and condition
 
@@ -697,11 +631,152 @@ Test for the None assignment and condition
       print("LOL")
 #+end_src
 
+#+RESULTS:
+: The value of the variable is None
+
 Test for slicing behavior
 
 #+begin_src python :results output
-  string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  string = "BCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   #the above string contains only 36 characters, thus the last index should be 35.
   #thus printing from 0 index through 36 should give back the string from index 0 through 35, which is 0 to 36-1
-  print(string[0:36])
+  print(string[0:])
 #+end_src
+
+#+RESULTS:
+: BCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
+
+** Finding all the frames of a sequence
+The first 3 frames of the sequence can be found by starting from the first, second and third position, respectively, of the sequence in the forward direction.
+For the next 3 frames, the reverse complement of the sequence has to be used. 
+*** Finding reverse complement of sequences
+**** Revese of a Sequence
+***** The =sequence_reverse()= function 
+#+begin_src python :session gdspyt :tangle ./temp.py 
+  #This is a simple function to reverse a string
+  def sequence_reverse(sequence):
+      """
+      This program finds the reverse of the sequence entered. 
+      """
+      #first we initialize the string variable which will contain our reversed string
+      reversed_sequence = ''
+      #next we initialize our loop variable to the value of the last index of 'sequence'
+      i=len(sequence)-1
+      #we use a while loop, which continues till i is greater than or equal to zero 
+      while i>=0:
+          #we concatenate each letter from the end of the sequence entered to form a new string which has the order reversed
+          reversed_sequence = reversed_sequence+sequence[i]
+          #in each iteration we decrease the value of the variable i to maintain the loop condition
+          i=i-1
+
+      #finally, exit from the function and return the reversed sequence    
+      return reversed_sequence
+#+end_src
+
+#+RESULTS:
+***** Testing the =sequence_reverse()= function 
+#+begin_src python :session gdspyt :results output  
+print(sequence_reverse(test_sequence))
+#+end_src
+
+#+RESULTS:
+: CTGCTGGCTGGCGCGCCGCCAGCGCTTCCGCGAGCCGCAGCGGGGCCTCTTTCAGGTCTAGAAGTGCGACTGGAGCCCGCCGCTGATACCGGCCGCGAGCTGCGGCTGCAGCCTGATGCACCAGCTTCGGCGGGTGCACAGGCGGCGCATGGAGCGCCGGCCGGTAGAGCCGGGGCAGTTCTGCTAGACCTGCGCGCTCCTGCTAGACGCGCCGCCGATAATGGCGGGCTACCACGACGTAGCGCAGCTGTAGCCGCACCTGCCGTCGCCGCGGCACGCGCTGACCGTCGTGCACCAGCAGCCGGTCAGACACGACTTCCCGAGCGGCGAGCTCGCGTGCTGCTACGAGTTCGCGCCGTGGCTAGGCTCGGACTGGCTTCCGCACTGCTTGTCGGGCATGCCGAAGGGCTACGTCCATAGCCAAGTAGTCTGGCTCCGGCTGCACGGCCAGGTCTGCACCGCGAGCCCGCCGTTGAGCGTATGCCGCAAGCACTACCTTTGCGACCAGCTGCTCGAGCGCGTGAGCCGCGCCGTCCTAGGCCAGCGGATGGCCTACTGCGCCGACCGGCCGGGGCTCGTGCGGCGCGTAGCCGTCCGCGAGCGCGACCGGCAGCTGTTCAGGCCGATGCCGCGCGCGTGCGACGGCCGGCCCGTGCGCACCCCGCAGCGCTACGTGCTTTGCCGGCCGAGCCAGCAGCGCATGCACTGCCTTCACAGCTAGCTTCGCGTTGTTGGCGCGCACGTAGCGCACTGCCGGCCGCACATACGCCCGGCGTAGCAGTTGGGCTGGCCGCGCGTTCGCGTCTAGGTCCCGCCGCGCGACAAGCCAGAGCGCTGCTGCTTCGGGCCGAAGCGCTAGCTGCAGCTGGTACCGCGCCAGGCGTTGCGGCCAAAGCGGCTGATAAGCGGCTATGCGTACGTCCTTCGCGGCGGCCACCTACAGAAGAAGCACGGCAGCCTGCGGGTCGGCTGGCCCAACTCGCTGCGGCCGCACGGCGGCTAGCGCGGCCGCCACCGGTTGCCACGCAAGCACGACTGGCCGCTCGCCCACGTACGCAACGGCAAGGGGGGCTACGACCAGCGCAGCTGGCGGGGGCACTACGGCCGCCGGGGGCGCTGCCGCCGGCTGCTCCTAGGCATGCCGTTGGACGGCCGGCCGCCGACGGCCGACGGCGTGTTCCAGTTCGGA
+
+**** Complement of a sequence
+***** The =dna_complement()= function 
+#+begin_src python :session gdspyt :tangle ./temp.py 
+  #this function returns the complement of a DNA sequence entered, NOT the reverse complement
+  def dna_complement(sequence):
+      """
+      This function returns the complementary sequence of a DNA sequence entered.
+
+      """
+      #first we define a dictionary containing all the bases and their complements, even in lowecase
+      bases_dict = {"A":"T", "a":"t", "C":"G", "c":"g", "G":"C", "g":"c", "T":"A", "t":"a", "N":"N", "n":"n"}
+
+      #we initialize a string variable to store the complementary sequence
+      complement = ''
+
+      #next we loop over our sequence and make a new complementary string
+      for i in sequence:
+          complement = complement + bases_dict[i]
+
+      #finally, return the complement sequence and exit from the function
+      return complement
+#+end_src
+
+#+RESULTS:
+
+***** Testing the =dna_complement()= function
+#+begin_src python :session gdspyt :results output  
+print(dna_complement(test_sequence))
+#+end_src
+
+#+RESULTS:
+: TCCGAACTGGAACACGCCGTCGGCCGTCGGCGGCCGGCCGTCCAACGGCATGCCTAGGAGCAGCCGGCGGCAGCGCCCCCGGCGGCCGTAGTGCCCCCGCCAGCTGCGCTGGTCGTAGCCCCCCTTGCCGTTGCGTACGTGGGCGAGCGGCCAGTCGTGCTTGCGTGGCAACCGGTGGCGGCCGCGCTAGCCGCCGTGCGGCCGCAGCGAGTTGGGCCAGCCGACCCGCAGGCTGCCGTGCTTCTTCTGTAGGTGGCCGCCGCGAAGGACGTACGCATAGCCGCTTATCAGCCGCTTTGGCCGCAACGCCTGGCGCGGTACCAGCTGCAGCTAGCGCTTCGGCCCGAAGCAGCAGCGCTCTGGCTTGTCGCGCGGCGGGACCTAGACGCGAACGCGCGGCCAGCCCAACTGCTACGCCGGGCGTATGTGCGGCCGGCAGTGCGCTACGTGCGCGCCAACAACGCGAAGCTAGCTGTGAAGGCAGTGCATGCGCTGCTGGCTCGGCCGGCAAAGCACGTAGCGCTGCGGGGTGCGCACGGGCCGGCCGTCGCACGCGCGCGGCATCGGCCTGAACAGCTGCCGGTCGCGCTCGCGGACGGCTACGCGCCGCACGAGCCCCGGCCGGTCGGCGCAGTAGGCCATCCGCTGGCCTAGGACGGCGCGGCTCACGCGCTCGAGCAGCTGGTCGCAAAGGTAGTGCTTGCGGCATACGCTCAACGGCGGGCTCGCGGTGCAGACCTGGCCGTGCAGCCGGAGCCAGACTACTTGGCTATGGACGTAGCCCTTCGGCATGCCCGACAAGCAGTGCGGAAGCCAGTCCGAGCCTAGCCACGGCGCGAACTCGTAGCAGCACGCGAGCTCGCCGCTCGGGAAGTCGTGTCTGACCGGCTGCTGGTGCACGACGGTCAGCGCGTGCCGCGGCGACGGCAGGTGCGGCTACAGCTGCGCTACGTCGTGGTAGCCCGCCATTATCGGCGGCGCGTCTAGCAGGAGCGCGCAGGTCTAGCAGAACTGCCCCGGCTCTACCGGCCGGCGCTCCATGCGCCGCCTGTGCACCCGCCGAAGCTGGTGCATCAGGCTGCAGCCGCAGCTCGCGGCCGGTATCAGCGGCGGGCTCCAGTCGCACTTCTAGACCTGAAAGAGGCCCCGCTGCGGCTCGCGGAAGCGCTGGCGGCGCGCCAGCCAGCAG
+
+**** Reverse complement of a sequence
+***** The =reverse_complement()= function 
+#+begin_src python :session gdspyt :tangle ./temp.py
+  #a simple function which calls the reverse string and sequence complement functions to calculate the reverse complements
+  def reverse_complement(sequence):
+      return(dna_complement(sequence_reverse(sequence)))
+    
+#+end_src
+
+#+RESULTS:
+***** Testing the =reverse_complement()= function
+#+begin_src python :session gdspyt :results output
+print(reverse_complement(test_sequence))
+#+end_src
+
+#+RESULTS:
+: GACGACCGACCGCGCGGCGGTCGCGAAGGCGCTCGGCGTCGCCCCGGAGAAAGTCCAGATCTTCACGCTGACCTCGGGCGGCGACTATGGCCGGCGCTCGACGCCGACGTCGGACTACGTGGTCGAAGCCGCCCACGTGTCCGCCGCGTACCTCGCGGCCGGCCATCTCGGCCCCGTCAAGACGATCTGGACGCGCGAGGACGATCTGCGCGGCGGCTATTACCGCCCGATGGTGCTGCATCGCGTCGACATCGGCGTGGACGGCAGCGGCGCCGTGCGCGACTGGCAGCACGTGGTCGTCGGCCAGTCTGTGCTGAAGGGCTCGCCGCTCGAGCGCACGACGATGCTCAAGCGCGGCACCGATCCGAGCCTGACCGAAGGCGTGACGAACAGCCCGTACGGCTTCCCGATGCAGGTATCGGTTCATCAGACCGAGGCCGACGTGCCGGTCCAGACGTGGCGCTCGGGCGGCAACTCGCATACGGCGTTCGTGATGGAAACGCTGGTCGACGAGCTCGCGCACTCGGCGCGGCAGGATCCGGTCGCCTACCGGATGACGCGGCTGGCCGGCCCCGAGCACGCCGCGCATCGGCAGGCGCTCGCGCTGGCCGTCGACAAGTCCGGCTACGGCGCGCGCACGCTGCCGGCCGGGCACGCGTGGGGCGTCGCGATGCACGAAACGGCCGGCTCGGTCGTCGCGTACGTGACGGAAGTGTCGATCGAAGCGCAACAACCGCGCGTGCATCGCGTGACGGCCGGCGTGTATGCGGGCCGCATCGTCAACCCGACCGGCGCGCAAGCGCAGATCCAGGGCGGCGCGCTGTTCGGTCTCGCGACGACGAAGCCCGGCTTCGCGATCGACGTCGACCATGGCGCGGTCCGCAACGCCGGTTTCGCCGACTATTCGCCGATACGCATGCAGGAAGCGCCGCCGGTGGATGTCTTCTTCGTGCCGTCGGACGCCCAGCCGACCGGGTTGAGCGACGCCGGCGTGCCGCCGATCGCGCCGGCGGTGGCCAACGGTGCGTTCGTGCTGACCGGCGAGCGGGTGCATGCGTTGCCGTTCCCCCCGATGCTGGTCGCGTCGACCGCCCCCGTGATGCCGGCGGCCCCCGCGACGGCGGCCGACGAGGATCCGTACGGCAACCTGCCGGCCGGCGGCTGCCGGCTGCCGCACAAGGTCAAGCCT
+
+*** The =frame_extract()= function
+#+begin_src python :session gdspyt :tangle ./temp.py 
+  def frame_extract(sequence):
+      """This function extracts all the 6 ORFs from a given sequence."""
+
+      #initializing the dictionary which will store all the sequences of all the frames 
+      frame_dictionary = {}
+
+      #this variable stores the frame numbers 
+      frame_no = 1
+
+      #loop extracting frames 1, 2 and 3
+      for i in range(3):
+          frame_name = "Frame" + str(frame_no)
+          frame_dictionary[frame_name] = sequence[i:]
+          frame_no = frame_no + 1
+
+      # print(frame_no)
+
+      sequence_reverse_complement = reverse_complement(sequence)
+
+      #loop extracting frames 4, 5, and 6
+      for i in range(3):
+          frame_name = "Frame" + str(frame_no)
+          frame_dictionary[frame_name] = sequence_reverse_complement[i:]
+          frame_no = frame_no + 1
+
+      # print(frame_no)
+
+      return(frame_dictionary)
+#+end_src
+
+#+RESULTS:
+
+*** Testing the =frame_extract()= function
+#+begin_src python :session gdspyt :tangle ./temp.py
+  frm_dic = frame_extract(test_sequence)
+  for keys, items in frm_dic.items():
+      print(keys, "\n", items, "\n")
+#+end_src
+
+#+RESULTS:
+: None
+
+** Finding all ORFs in a sequence
+** Printing all ORFs in a sequence 
+** Comparing and printing the longest ORF of a sequence 
