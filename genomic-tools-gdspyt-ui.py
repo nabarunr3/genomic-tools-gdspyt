@@ -60,3 +60,17 @@ print("\nThere are a total of", len(fast_dict), "sequences in the file.")
 
 from seqlen_compare import *
 seq_len_compare(fast_dict)
+
+#first we got to import the functions which store sequence lengths of a file in the form of a dictionary.
+from temp import * 
+
+def print_orfs_of_file(fasta_dict):
+    """This function takes as input a dictionary containing all sequences in a file in the format "identifier:sequence" and prints all the ORFs of all reading frames of all sequences of a file."""
+
+    for identifier, sequence_orf_info in fasta_dict.items():
+        print("* ++++++", identifier, "++++++")
+        print_sequence_orfs(sequence_orf_info)
+
+print_orfs_of_file(fast_dict)
+
+def file_ORF_compare(fasta_dict):

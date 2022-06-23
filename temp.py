@@ -175,19 +175,25 @@ def print_sequence_orfs(sequence):
 def compare_seq_orfs(sequence):
     """This function compares all the ORFs in a sequence."""
 
+    #getting the ORF information of the sequences 
     seq_orf_info = sequence_orfs(sequence)
 
+    #a dictionary to store the lengths of all the ORFs defined in seq_orf_info
     seq_orf_len_dict = {}
+
+    #this loop builds the seq_orf_len_dict as well as finds the maximum length
     max_len = 0
     for frame, frame_dict in seq_orf_info.items():
+        seq_orf_len_dict[frame] = {}
         for orf, orf_list in frame_dict.items():
+            #we subtract the starting and ending positions of the ORFs
             orf_len = abs(orf_list[1] - orf_list[2])
             #initialize a new dictionary inside of seq_orf_len_dict, corresponding to a key, frame
-            seq_orf_len_dict[frame] = {}
             seq_orf_len_dict[frame][orf] = orf_len
             if orf_len >= max_len:
                 max_len = orf_len
 
+    #now we find the minimum length 
     min_len = max_len 
     for frame, frame_dict in seq_orf_len_dict.items():
         for orf, orf_len in frame_dict.items():
@@ -195,6 +201,7 @@ def compare_seq_orfs(sequence):
                 min_len = orf_len
 
 
+    #since there can be more than one sequences with the maximum or minimum lengths, we initialize a dictionary which will store all frames and ORFs corresponting to the maximum and minimum lengths 
     max_len_dict = {}
     min_len_dict = {}
     for frame, frame_dict in seq_orf_len_dict.items():
@@ -206,7 +213,4 @@ def compare_seq_orfs(sequence):
                 min_len_dict[frame] = {}
                 min_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
 
-    return (max_len, max_len_dict, min_len, min_len_dict)
-
-comparison_tuple = compare_seq_orfs(test_sequence)
-print(comparison_tuple)
+    return (max_len, max_len_dict, min_len, min_len_dict, seq_orf_len_dict)
