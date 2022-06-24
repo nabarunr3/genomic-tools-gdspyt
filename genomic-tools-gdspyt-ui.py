@@ -74,3 +74,34 @@ def print_orfs_of_file(fasta_dict):
 print_orfs_of_file(fast_dict)
 
 def file_ORF_compare(fasta_dict):
+ #initializing the dictionary which will store the ORF lengths of all the sequences 
+ file_ORF_len_dict = {}
+
+ #building the file_ORF_len_dict dictionary 
+ for identifier, sequence in fasta_dict.items():
+  file_ORF_len_dict[identifier] = compare_seq_orfs{fasta_dict}
+
+ #now we will go over the entries of the dictionary and get the values of the maximum ORF
+ max_len_file = 0
+ for identifier, sequence_info in file_ORF_len_dict.items():
+  for i in range(len(sequence_info)):
+   if sequence_info[0] > max_len_file:
+    max_len_file = sequence_info[0]
+
+ #getting the value of the minimum length of the ORF
+ min_len_file = max_len_file
+ for identifier, sequence_info in file_ORF_len_dict.items():
+  for i in range(len(sequence_info)):
+   if sequence_info[2] < min_len_file:
+    min_len_file = sequence_info[2]
+
+#storing ORFs with the maximum and minimum lengths 
+max_len_dict = {}
+min_len_dict = {}
+ for identifier, sequence_info in file_ORF_len_dict.items():
+  for i in range(len(sequence_info)):
+    for frame, ORF_info in sequence_info[1].items():
+     for ORF, positions in ORF_info.items():
+
+
+ return 0

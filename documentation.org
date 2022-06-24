@@ -1,45 +1,19 @@
 #+title:A set of sequence manipulation code
 
-* Table of Contents                                                     :toc@3:
+* Table of Contents                                                     :toc@2:
 - [[#reading-and-comparing-sequences-in-a-given-fasta-file][Reading and comparing sequences in a Given FASTA file]]
   - [[#parsing-a-fasta-file][Parsing a FASTA File]]
-    - [[#opening-the-file][Opening the file]]
-    - [[#putting-the-sequences-of-the-file-in-a-dictionary][Putting the sequences of the file in a dictionary]]
-    - [[#printing-file-information][Printing file information]]
-    - [[#printing-length-information-of-sequences][Printing length information of sequences]]
-    - [[#example-sequence][Example sequence]]
   - [[#comparing-sequences-in-the-file][Comparing sequences in the file]]
-    - [[#question][Question]]
-    - [[#our-approach][Our Approach]]
-    - [[#creating-a-dictionary-storing-identifiers-and-sequence-lengths-and-printing-it][Creating a dictionary storing identifiers and sequence lengths and printing it]]
 - [[#identification-and-mapping-of-open-reading-frames-orfs][Identification and Mapping of Open Reading Frames (ORFs)]]
-  - [[#question-1][Question]]
+  - [[#question][Question]]
   - [[#approach][Approach]]
-    - [[#how-we-define-the-open-reading-frames-for-a-sequence][How we define the (open) reading frames for a sequence?]]
-    - [[#data-storage-scheme][Data storage scheme]]
-    - [[#breaking-down-into-parts][Breaking down into parts]]
   - [[#finding-all-orfs-in-a-single-frame][Finding all ORFs in a single frame]]
-    - [[#the-frame_orfs-function][The =frame_orfs()= function]]
-    - [[#testing-the-frame_orfs-function][Testing the =frame_orfs()= function]]
-    - [[#previous-code][Previous code]]
   - [[#finding-all-the-frames-of-a-sequence][Finding all the frames of a sequence]]
-    - [[#finding-reverse-complement-of-sequences][Finding reverse complement of sequences]]
-    - [[#the-frame_extract-function][The =frame_extract()= function]]
-    - [[#testing-the-frame_extract-function][Testing the =frame_extract()= function]]
   - [[#finding-all-orfs-in-a-sequence][Finding all ORFs in a sequence]]
-    - [[#the-sequence_orfs-function][The =sequence_orfs()= function]]
-    - [[#testing-the-sequence_orfs-function][Testing the =sequence_orfs()= function]]
   - [[#printing-all-orfs-in-a-sequence][Printing all ORFs in a sequence]]
-    -  [[#function-print_sequence_orfs][Function =print_sequence_orfs()=]]
-    - [[#testing--print_sequence_orfs][Testing  =print_sequence_orfs()=]]
   - [[#comparing-and-printing-the-longest-orfs-of-a-sequence][Comparing and printing the longest ORFs of a sequence]]
-    - [[#the-compare_seq_orfs-function][The =compare_seq_orfs()= function]]
-    - [[#testing-compare_seq_orfs-function][Testing =compare_seq_orfs()= function]]
   - [[#printing-orf-information-of-all-sequences-in-a-file][Printing ORF information of all sequences in a file]]
-    - [[#the-print_orfs_of_file-function][The =print_orfs_of_file()= function]]
-    - [[#testing-print_orfs_of_file-function][Testing =print_orfs_of_file()= function]]
   - [[#printing-the-longest-and-shortest-orfs-among-all-sequences-in-a-file][Printing the longest and shortest ORFs among all sequences in a file]]
-    - [[#the-file_orf_compare-function][The =file_ORF_compare()= function]]
 
 * Reading and comparing sequences in a Given FASTA file
 (1) How many records are in the file? A record in a FASTA file is defined as a single-line header, followed by lines of sequence data. The header line is distinguished from the sequence data by a greater-than (">") symbol in the first column. The word following the ">" symbol is the identifier of the sequence, and the rest of the line is an optional description of the entry. There should be no space between the ">" and the first letter of the identifier. 
@@ -920,11 +894,11 @@ Now we compare all the ORFs in a given sequence and print them. The function wil
                   min_len_dict[frame] = {}
                   min_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
 
-      return (max_len, max_len_dict, min_len, min_len_dict, seq_orf_len_dict)
+      return (max_len, max_len_dict, min_len, min_len_dict)
 #+end_src
 *** Testing =compare_seq_orfs()= function
 
-#+begin_src python :session gdspyt :tangle no
+#+begin_src python :session gdspyt :tangle ./temp.py
   comparison_tuple = compare_seq_orfs(test_sequence)
   print(comparison_tuple)
 #+end_src
@@ -948,9 +922,110 @@ print_orfs_of_file(fast_dict)
 #+end_src
 
 ** Printing the longest and shortest ORFs among all sequences in a file
+Till now we can compare all the ORFs in a particular sequence with the =compare_seq_orfs()= function, which returns a tuple of type =(max_len, max_len_dict, min_len, min_len_dict)=.
 
+Now, to compare ORFs of all sequences in a file, the =file_ORF_compare()= function must first store the maximum and minimum ORF lengths of all the sequences in a dictionary of type:
+
+#+begin_src python
+  file_orf_len_dict = {
+      sequence_id_1: (
+          max_len, max_len_dict = {frame_a1:
+                                   {ORF_a1: [start_pos, end_pos],
+                                    .
+                                    .
+                                    .,
+                                    ORF_an: [start_pos, end_pos]},
+                                   .
+                                   .
+                                   .
+                                   frame_an: [ORF_a1, ..., ORF_an]},
+          min_len, min_len_dict = {frame_a1:
+                                   {ORF_a1: [start_pos, end_pos],
+                                    .
+                                    .
+                                    .,
+                                    ORF_an: [start_pos, end_pos]}}),
+      .
+      .
+      .,
+      sequence_id_n: (
+          max_len, max_len_dict = {frame_a1:
+                                   {ORF_a1: [start_pos, end_pos],
+                                    .
+                                    .
+                                    .,
+                                    ORF_an: [start_pos, end_pos]},
+                                   .
+                                   .
+                                   .
+                                   frame_an: [ORF_a1, ..., ORF_an]},
+          min_len, min_len_dict = {frame_a1:
+                                   {ORF_a1: [start_pos, end_pos],
+                                    .
+                                    .
+                                    .,
+                                    ORF_an: [start_pos, end_pos]}})}
+    
+
+
+#+end_src
+
+Then there will be a comparison between the sequences, which has the longest ORF.
+
+The sequence id, frame and ORF of the longest and shortest ORF(s) will be stored in a dictionary of type:
+#+begin_src python
+  max_len/min_len_dict =  {sequence_a1:
+                           {frame_b1:
+                            {orf_c1: [start, end], ..., orf_cn: [start, end]},
+                            .
+                            .
+                            .,
+                            frame_bn:
+                            {orf_c1: [start, end], ..., orf_cn: [start, end]}},
+                           .
+                           .
+                           .,
+                           sequence_an:
+                           {frame_b1:
+                            {orf_c1: [start, end], ..., orf_cn: [start, end]},
+                            .
+                            .
+                            .,
+                            frame_bn:
+                            {orf_c1: [start, end], ..., orf_cn: [start, end]}}}
+#+end_src
 *** The =file_ORF_compare()= function
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py  
   def file_ORF_compare(fasta_dict):
-    
+   #initializing the dictionary which will store the ORF lengths of all the sequences 
+   file_ORF_len_dict = {}
+
+   #building the file_ORF_len_dict dictionary 
+   for identifier, sequence in fasta_dict.items():
+    file_ORF_len_dict[identifier] = compare_seq_orfs{fasta_dict}
+
+   #now we will go over the entries of the dictionary and get the values of the maximum ORF
+   max_len_file = 0
+   for identifier, sequence_info in file_ORF_len_dict.items():
+    for i in range(len(sequence_info)):
+     if sequence_info[0] > max_len_file:
+      max_len_file = sequence_info[0]
+
+   #getting the value of the minimum length of the ORF
+   min_len_file = max_len_file
+   for identifier, sequence_info in file_ORF_len_dict.items():
+    for i in range(len(sequence_info)):
+     if sequence_info[2] < min_len_file:
+      min_len_file = sequence_info[2]
+
+  #storing ORFs with the maximum and minimum lengths 
+  max_len_dict = {}
+  min_len_dict = {}
+   for identifier, sequence_info in file_ORF_len_dict.items():
+    for i in range(len(sequence_info)):
+      for frame, ORF_info in sequence_info[1].items():
+       for ORF, positions in ORF_info.items():
+      
+ 
+   return 0 
 #+end_src
