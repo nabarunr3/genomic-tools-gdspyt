@@ -213,7 +213,4 @@ def compare_seq_orfs(sequence):
                 min_len_dict[frame] = {}
                 min_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
 
-    return (max_len, max_len_dict, min_len, min_len_dict)
-
-comparison_tuple = compare_seq_orfs(test_sequence)
-print(comparison_tuple)
+    return (max_len, max_len_dict, min_len, min_len_dict, seq_orf_len_dict)

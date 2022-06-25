@@ -71,37 +71,73 @@ def print_orfs_of_file(fasta_dict):
         print("* ++++++", identifier, "++++++")
         print_sequence_orfs(sequence_orf_info)
 
-print_orfs_of_file(fast_dict)
-
-def file_ORF_compare(fasta_dict):
+def file_ORF_compare_lengths(fasta_dict):
+ """This function compares the maximum and minimum lengths of all sequences in a file and returns the lengths of the longest and shortest ORF in the file."""
  #initializing the dictionary which will store the ORF lengths of all the sequences 
  file_ORF_len_dict = {}
 
  #building the file_ORF_len_dict dictionary 
  for identifier, sequence in fasta_dict.items():
-  file_ORF_len_dict[identifier] = compare_seq_orfs{fasta_dict}
+  file_ORF_len_dict[identifier] = compare_seq_orfs(sequence)
 
  #now we will go over the entries of the dictionary and get the values of the maximum ORF
  max_len_file = 0
  for identifier, sequence_info in file_ORF_len_dict.items():
-  for i in range(len(sequence_info)):
-   if sequence_info[0] > max_len_file:
-    max_len_file = sequence_info[0]
+  #the first entry in the tuple returned by compare_seq_ORFs contains the maximum length of the sequence 
+  if sequence_info[0] > max_len_file:
+   max_len_file = sequence_info[0]
 
  #getting the value of the minimum length of the ORF
  min_len_file = max_len_file
  for identifier, sequence_info in file_ORF_len_dict.items():
-  for i in range(len(sequence_info)):
-   if sequence_info[2] < min_len_file:
-    min_len_file = sequence_info[2]
+  #the third entry in the tuple returned by compare_seq_ORFs contains the minimum length of the sequence 
+  if sequence_info[2] < min_len_file:
+   min_len_file = sequence_info[2]
 
-#storing ORFs with the maximum and minimum lengths 
-max_len_dict = {}
-min_len_dict = {}
- for identifier, sequence_info in file_ORF_len_dict.items():
-  for i in range(len(sequence_info)):
-    for frame, ORF_info in sequence_info[1].items():
-     for ORF, positions in ORF_info.items():
+ return (max_len_file, min_len_file)
+
+def get_all_ORFs_of_length(fasta_dict, x):
+    """This function gets all ORFs of length x from a file whose sequence information has been stored in fasta_dict"""
+
+    all_ORFs_dict = {}
+
+    file_ORF_lengths_dict = {}
+    for identifier, sequence in fasta_dict.items():
+        seq_info = compare_seq_orfs(sequence)
+        file_ORF_lengths_dict[identifier] = seq_info[4]
 
 
- return 0
+    #initializing the list containing ORF of length x
+    dict_file_orfs_length_x = []
+    for identifier, identifier_info in file_ORF_lengths_dict.items():
+        for frame, frame_ORF_info in identifier_info.items():
+            for ORF, length in frame_ORF_info.items():
+                if length == x:
+                    ORF_coordinates = (identifier, frame, ORF)
+                    dict_file_orfs_length_x.append(ORF_coordinates)
+
+
+    return dict_file_orfs_length_x
+
+def print_longest_shortest_ORFs(fasta_dict):
+    """This function prints all the longest and shortest ORFs, considering all the frames of all sequences in a file """
+
+    #first we call the file_ORF_compare_lengths() to store the maximum and minimum ORF lengths of the file in a tuple returned by the function 
+    max_min_tuple = file_ORF_compare_lengths(fasta_dict)
+    #then we store the all the ORFs having the maximum and minimum lengths
+    max_ORF_list = get_all_ORFs_of_length(fasta_dict, max_min_tuple[0])
+    min_ORF_list = get_all_ORFs_of_length(fasta_dict, max_min_tuple[1])
+
+    #Finally to print them out in a nicely formatted way 
+    print("\n\nThe ORF(s) with the maximum lengths of", max_min_tuple[0], "are:")
+    print("\nIdentifier \t\t\t Frame \t\t ORF")
+    print("__________ \t\t\t _____ \t\t ___")
+    for i in range(len(max_ORF_list)):
+        print(max_ORF_list[i][0], "\t", max_ORF_list[i][1], "\t", max_ORF_list[i][2])
+    print("\n\nThe ORF(s) with the minimum lengths of", max_min_tuple[1], "are:")
+    print("\nIdentifier \t\t\t Frame \t\t ORF")
+    print("__________ \t\t\t _____ \t\t ___")
+    for i in range(len(min_ORF_list)):
+        print(min_ORF_list[i][0], "\t", min_ORF_list[i][1], "\t", min_ORF_list[i][2])
+
+    return 0
