@@ -1,6 +1,6 @@
 #+title:A set of sequence manipulation code
 
-* Table of Contents                                                     :toc@2:
+* Table of Contents                                                 :toc@2:
 - [[#reading-and-comparing-sequences-in-a-given-fasta-file][Reading and comparing sequences in a Given FASTA file]]
   - [[#parsing-a-fasta-file][Parsing a FASTA File]]
   - [[#comparing-sequences-in-the-file][Comparing sequences in the file]]
@@ -15,6 +15,9 @@
   - [[#printing-orf-information-of-all-sequences-in-a-file][Printing ORF information of all sequences in a file]]
   - [[#printing-the-longest-and-shortest-orfs-among-all-sequences-in-a-file][Printing the longest and shortest ORFs among all sequences in a file]]
 - [[#mapping-repeats-in-the-file][Mapping Repeats in the File]]
+  - [[#question-1][Question]]
+  - [[#our-approach][Our Approach]]
+  - [[#finding-number-of-repeats-of-a-given-length-in-a-given-sequence][Finding number of repeats of a given length in a given sequence]]
 
 * Reading and comparing sequences in a Given FASTA file
 (1) How many records are in the file? A record in a FASTA file is defined as a single-line header, followed by lines of sequence data. The header line is distinguished from the sequence data by a greater-than (">") symbol in the first column. The word following the ">" symbol is the identifier of the sequence, and the rest of the line is an optional description of the entry. There should be no space between the ">" and the first letter of the identifier. 
@@ -1101,3 +1104,76 @@ print_longest_shortest_ORFs(fast_dict)
 
 
 * Mapping Repeats in the File
+
+** Question
+(4) A repeat is a substring of a DNA sequence that occurs in multiple copies (more than one) somewhere in the sequence. Although repeats can occur on both the forward and reverse strands of the DNA sequence, we will only consider repeats on the forward strand here. Also we will allow repeats to overlap themselves. For example, the sequence ACACA contains two copies of the sequence ACA - once at position 1 (index 0 in Python), and once at position 3.
+
+Given a length n, your program should be able to identify all repeats of length n in all sequences in the FASTA file.
+
+Your program should also determine how many times each repeat occurs in the file, and which is the most frequent repeat of a given length.
+
+** Our Approach 
+The question asks us to find all repeats of length n in a DNA sequence.
+
+1. [ ] In a simplest case, we can define a sliding window of length x which will go over the DNA sequence and find all repeats of length n in that sequence. Additional data stored will be how many times each repeat occurs in the sequence. 
+2. [ ] Now we can scale that up to all sequences in the file.
+3. [ ] Now we deal on a per-repeat basis - we add the number of occurances of a particular repeat of length x to get the total number of times the repeat occurs in the file. 
+4. [ ] Finally we can find the most frequent repeat(s) in the file.
+
+
+** Finding number of repeats of a given length in a given sequence
+*** COMMENT The =repeat_mapper(sequence, length)= function
+#+begin_src python :session gdspyt :tangle ./repeats.py
+  def repeat_mapper(sequence, repeat_length):
+      """This function goes over a sequence and finds all the repeats of length x and their occurances."""
+
+      #we slide a window of 'length' nucleotides from position 1 to 1+length and then 2 to 2+length and so on, to get sequences of 'length' nucleotides.
+      #This window will have to stop at end minus 
+      i = 0
+      while (i < = len(sequence) - repeat_length):
+         repeat_candidate = sequence[i:(i + repeat_length)]
+         j = 0
+         #now we go over the sequence and find substrings matching the repeat sequence
+         while (j <= (len(sequence) - repeat_length)):
+             test_window = sequence[j:(j + repeat_length)]
+             if test_window == repeat_candidate:
+                 new_match_pos = j
+                 repeat_enquirer = j + 1
+                 prev_match_pos = new_match_pos
+                 #for the occurance to be considered a repeat, the distance between the position of the present (new occurance) and that of the future occurance should not be greater than the length of the repeat 
+                 while((new_match_pos - (prev_match_pos + repeat_length)) <=0):
+                     j = j + 1
+                     test_window = sequence[j:(j + repeat_length)]
+                     if test_window == repeat_candidate:
+                         prev_match_pos = new_match_pos
+                         new_match_pos = j 
+                         repeat_counter = repeat_counter + 1
+                       
+                       
+                   
+               
+             j = j + 1
+
+          i = i + 1
+        
+        
+#+end_src
+
+#+begin_src python :results output
+  s = "AGTCTGCA"
+  n = 3
+  print(len(s))
+  i = 0
+  while (i <=len(s) - n):
+      print(s[i:i+n])
+      i = i + 1
+#+end_src
+
+#+RESULTS:
+: 8
+: AGT
+: GTC
+: TCT
+: CTG
+: TGC
+: GCA
