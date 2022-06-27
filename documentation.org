@@ -1,6 +1,12 @@
 #+title:A set of sequence manipulation code
 
+* Roadmap
+** TODO Fix the ORF question to find ORFs as described in  [[file:new_information.org][new_information.org]].
+** TODO Find repeats 
 * Table of Contents                                                 :toc@2:
+- [[#roadmap][Roadmap]]
+  - [[#fix-the-orf-question-to-find-orfs-as-described-in--new_informationorg][Fix the ORF question to find ORFs as described in  new_information.org.]]
+  - [[#find-repeats][Find repeats]]
 - [[#reading-and-comparing-sequences-in-a-given-fasta-file][Reading and comparing sequences in a Given FASTA file]]
   - [[#parsing-a-fasta-file][Parsing a FASTA File]]
   - [[#comparing-sequences-in-the-file][Comparing sequences in the file]]
@@ -1122,7 +1128,7 @@ The question asks us to find all repeats of length n in a DNA sequence.
 
 
 ** Finding number of repeats of a given length in a given sequence
-*** COMMENT The =repeat_mapper(sequence, length)= function
+*** The =repeat_mapper(sequence, length)= function
 #+begin_src python :session gdspyt :tangle ./repeats.py
   def repeat_mapper(sequence, repeat_length):
       """This function goes over a sequence and finds all the repeats of length x and their occurances."""
@@ -1148,15 +1154,15 @@ The question asks us to find all repeats of length n in a DNA sequence.
                          prev_match_pos = new_match_pos
                          new_match_pos = j 
                          repeat_counter = repeat_counter + 1
-                       
-                       
-                   
-               
+
+
+
+
              j = j + 1
 
           i = i + 1
-        
-        
+
+
 #+end_src
 
 #+begin_src python :results output
