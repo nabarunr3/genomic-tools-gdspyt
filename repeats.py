@@ -1,31 +1,19 @@
-def repeat_mapper(sequence, repeat_length):
-    """This function goes over a sequence and finds all the repeats of length x and their occurances."""
+def get_repeat_frequency(sequence, repeat_unit):
+    """This function returns the number of times a repeat unit occurs in a sequence."""
 
-    #we slide a window of 'length' nucleotides from position 1 to 1+length and then 2 to 2+length and so on, to get sequences of 'length' nucleotides.
-    #This window will have to stop at end minus 
+    repeat_count = 0
+    #we start from the first position of the sequence and take out test windows corresponding to length of repeat unit.
+    repeat_len = len(repeat_unit)
+    seq_len = len(sequence)
     i = 0
-    while (i < = len(sequence) - repeat_length):
-       repeat_candidate = sequence[i:(i + repeat_length)]
-       j = 0
-       #now we go over the sequence and find substrings matching the repeat sequence
-       while (j <= (len(sequence) - repeat_length)):
-           test_window = sequence[j:(j + repeat_length)]
-           if test_window == repeat_candidate:
-               new_match_pos = j
-               repeat_enquirer = j + 1
-               prev_match_pos = new_match_pos
-               #for the occurance to be considered a repeat, the distance between the position of the present (new occurance) and that of the future occurance should not be greater than the length of the repeat 
-               while((new_match_pos - (prev_match_pos + repeat_length)) <=0):
-                   j = j + 1
-                   test_window = sequence[j:(j + repeat_length)]
-                   if test_window == repeat_candidate:
-                       prev_match_pos = new_match_pos
-                       new_match_pos = j 
-                       repeat_counter = repeat_counter + 1
-
-
-
-
-           j = j + 1
+    #we want slide the window till the last position in the sequence which can accomodate the windo
+    while (i <= (seq_len - repeat_len)):
+        test_window = sequence[i:(i + repeat_len)]
+        if test_window == repeat_unit:
+            repeat_count = repeat_count + 1
 
         i = i + 1
+
+    return repeat_count
+
+print(get_repeat_frequency(test_sequence, "AGTAGGA"))
