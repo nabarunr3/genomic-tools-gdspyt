@@ -120,7 +120,7 @@ Now we print the sequence identifiers in the dictionary and the number of entrie
 #+RESULTS:
 
 *** Example sequence
-#+begin_src python :session gdspyt :tangle ./temp.py
+#+begin_src python :session gdspyt :tangle ./repeats.py
 test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
 #+end_src
 
@@ -1211,10 +1211,10 @@ Thus, for the repeats problem, we take this approach:
 #+end_src
 
       
-*** TODO Testing =get_repeat_frequency()=
+*** Testing =get_repeat_frequency()=
 
-#+begin_src python :session gdspyt :tangle ./repeats.py
-  print(get_repeat_frequency(test_sequence, "AGTAGGA"))
+#+begin_src python :session gdspyt :tangle no :results output
+  print(get_repeat_frequency(test_sequence, "TTGTTGCGCTTCGA"))
 #+end_src
 
 #+RESULTS:
@@ -1223,7 +1223,7 @@ Thus, for the repeats problem, we take this approach:
 
 *** The =get_seq_repeat_info(sequence, n)= function
 
-#+begin_src python
+#+begin_src python :session gdspyt :tangle ./repeats.py 
   def get_repeat_units(sequence, n):
       """This function gets a dictionary containing all subsequences of length n which occur repeatedly, that is, two times or more."""
 
@@ -1235,21 +1235,26 @@ Thus, for the repeats problem, we take this approach:
       while (i <= (seqlen - n)):
           test_repeat_unit = sequence[i:(i + n)]
           #now we get the frequency of this unit in our sequence
-          if (get_repeat_frequency(sequence, test_repeat_unit) > 1):
-              sequence_repeats_dict.append(test_repeat_unit)
-
+          frequency = get_repeat_frequency(sequence, test_repeat_unit)
+          if (frequency > 1):
+              sequence_repeats_dict[test_repeat_unit] = frequency
+              
           i = i + 1 
 
-      return test_repeat_unit
+      return sequence_repeats_dict
 #+end_src
 
-*** TODO Testing =get_seq_repeat_info()=
-
+*** Testing =get_seq_repeat_info()=
+#+begin_src python :session gdspyt :tangle no
+  for i in range(100):  
+      print("\n* ====", i, "====\n")
+      print(get_repeat_units(test_sequence, i))
+#+end_src
 ** Getting the repeat information of all unique repeats for all sequences of a file
 
 *** The =get_file_repeat_units(fasta_dictionary, n)= function
 
-#+begin_src python
+#+begin_src python 
   def get_file_repeat_units(fasta_dict, n):
       file_repeat_info = {}
       for uid, sequence in fasta_dict.items():
