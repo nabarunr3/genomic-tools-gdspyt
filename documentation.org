@@ -2,7 +2,8 @@
 
 * Roadmap
 ** TODO Fix the ORF question to find ORFs as described in  [[file:new_information.org][new_information.org]].
-** TODO Test and debug repeats 
+** DONE Test and debug repeats 
+CLOSED: [2022-06-29 Wed 00:55]
 ** DONE Find repeats 
 CLOSED: [2022-06-27 Mon 12:34]
 * Table of Contents                                                 :toc@2:
@@ -497,6 +498,37 @@ Having defined the data structure, let us break up the scheme of work into granu
 
 ** Finding all ORFs in a single frame
 *** The =frame_orfs()= function 
+**** Newer
+This was needed because the previous function considers all ORFs, even for the start codons that occur between a start and stop codon.
+
+This new function ignores all start codons between a previously discovered start codon and a stop codon. 
+#+begin_src python
+  def frame_orfs(frame):
+      """This function extracts all ORFs from a sequence, ignoring start codons that fall between a previous start codon and stop codon."""
+
+      #define the start and stop codons
+      start_codon = "ATG"
+    
+      stop_codon_tuple = ("TAA", "TAG", "TGA")
+
+      #trimming the frame (from the end) to number of nucleotides in multiples of 3
+      trimmed_frame = ""
+      for i in range((len(frame) - (len(frame)%3))):
+          trimmed_frame = trimmed_frame + frame[i]
+
+    
+      h = 0
+      while (h <= (len(trimmed_frame) - 3)):
+          codon = trimmed_frame[h:h+3]
+
+          if codon == start_codon:
+              while (h <= (len(trimmed_frame) - 3)):
+                  codon = trimmed_frame[h:h+3]
+                  if codon in stop_codon_tuple:
+                      break
+            
+#+end_src
+**** Deprecated 
 #+begin_src python :session gdspyt :tangle ./temp.py 
   def frame_orfs(frame):
       #define the start and stop codons
@@ -572,101 +604,7 @@ Having defined the data structure, let us break up the scheme of work into granu
 
 #+RESULTS:
 
-
 Thus, we have successfully found all of the ORFs in one single frame.
-*** Previous code
-#+begin_src python
-  #in this function we find all ORFs in a sequence, that is, sequences which start with ATG and end with any of the stop codons TAA, TAG and TGA
-  def ORF_find(seq_dictionary):
-      """
-      This function accepts a sequence dictionary created from identifier:sequence pairs from a multi-FASTA file and returns another sequence dictionary containing identifier:ORF lists.
-
-      """
-
-      """Initializing some necessicities""" 
-
-      #the master dictionary containing all the ORFs from all reading frames along with their positions in each sequence
-      orf_dictionary = {}
-    
-      #Variable to store the reverse complement 
-      reverse_complement = ''
-
-      #Tuple containing our stop codons
-      stop_codon_tuple = ("TAA", "TAG", "TGA")
-
-      #the start codon
-      start_codon = "ATG"
-
-      #initializing the start and stop codon position variables to null values 
-      start_index_in_frame = None
-      stop_index_in_frame = None
-
-      """Now we enter the loop to check for our coding sequences."""
-      for identifiers, sequences in seq_dictionary.items():
-          reverse_complement = reverse_complement(values)
-          #start going through frames 1, 2 and 3
-          codon = ""
-          frame_dictionary = {}
-          i = 0
-          while i<3:
-              for j in range(i, (len(sequences) - (i + 3))):
-                  codon = values[j:(j + 3)]
-                  if codon == start_codon:
-                      start_index_in_frame = j
-                  if codon in stop_codon_tuple:
-                      stop_index_in_frame = j
-                  #skipping 3 codons and re-entering the loop     
-                  j = j + 3
-
-              frame_list = []
-              orf_codon_list = []
-              #Now check if the reading frame actually contains an ORF
-              if (start_index_in_frame != None && stop_index_in_frame != None):
-
-                  #continue from the position where start_codon was encountered 
-                  j = start_index_in_frame
-                
-                  #stop at stop codon's position 
-                  while (j < stop_index_in_frame):
-                      #build the codon list in the ORF 
-                      orf_codon_list.append(sequence[j:j+3])
-                      j + 3
-                  #building the frame information list
-                  frame_list.append(orf_codon_list)
-                  frame_list.append(start_index_in_frame)
-                  frame_list.append(stop_index_in_frame)
-                
-                  frame_dictionary["Frame_" + str(i+1)] = frame_list
-
-          orf_dictionary[identifiers] = frame_dictionary
-#+end_src
-
-#+RESULTS:
-
-Test for the None assignment and condition
-
-#+begin_src python :results output
-  test = None
-  if test==None:
-      print("The value of the variable is", test)
-  if test != None:
-      print("LOL")
-#+end_src
-
-#+RESULTS:
-: The value of the variable is None
-
-Test for slicing behavior
-
-#+begin_src python :results output
-  string = "BCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-  #the above string contains only 36 characters, thus the last index should be 35.
-  #thus printing from 0 index through 36 should give back the string from index 0 through 35, which is 0 to 36-1
-  print(string[0:])
-#+end_src
-
-#+RESULTS:
-: BCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
 
 ** Finding all the frames of a sequence
 The first 3 frames of the sequence can be found by starting from the first, second and third position, respectively, of the sequence in the forward direction.
@@ -1132,9 +1070,9 @@ Logically thinking, probability of a large sequence (say, >5nt) occuring purely 
    
 Thus, for the repeats problem, we take this approach:
 
-1. [ ] First look at how many times a *given repeat unit* occurs in a sequence and return a value with the functio =get_repeat_frequency(sequence, repeat_unit)= 
+1. [X] First look at how many times a *given repeat unit* occurs in a sequence and return a value with the functio =get_repeat_frequency(sequence, repeat_unit)= 
 
-2. [ ] Then use another function =get_seq_repeat_info(sequence, n)= to *extract all unique units of length n*, which occur > 1 times in a sequence, and return a dictionary:
+2. [X] Then use another function =get_seq_repeat_info(sequence, n)= to *extract all unique units of length n*, which occur > 1 times in a sequence, and return a dictionary:
       
    #+begin_src python
      sequence_repeats_dict = {unit_1:times, ..., unit_n:times}
@@ -1144,7 +1082,7 @@ Thus, for the repeats problem, we take this approach:
       
 3. Now to scale this up to a file:
         
-   1) A function =get_file_repeat_units(fasta_dictionary, n)= accepts a FASTA parsed dictionary and and a unit length n and gets the =file_repeat_info= dictionary containing repeat information (of length n) corresponding to all sequence IDs in the file, by calling the =get_seq_repeat_info(sequence)= for all sequences.
+   1) [X] A function =get_file_repeat_units(fasta_dictionary, n)= accepts a FASTA parsed dictionary and and a unit length n and gets the =file_repeat_info= dictionary containing repeat information (of length n) corresponding to all sequence IDs in the file, by calling the =get_seq_repeat_info(sequence)= for all sequences.
 
      #+begin_src python
        file_repeat_info = {
@@ -1171,7 +1109,7 @@ Thus, for the repeats problem, we take this approach:
 
       Finally it returns the occurance of all unique repeat units in the file. 
 
-   2) Now another function =max_occurance_n(fasta_dict, n)= will compare all the unique repeat units of length n and return the unit(s) with the max occurance and the number of times it has occured, in a list of type:
+   2) [X] Now another function =max_occurance_n(fasta_dict, n)= will compare all the unique repeat units of length n and return the unit(s) with the max occurance and the number of times it has occured, in a list of type:
 
       #+begin_src python
       max_repeats_list = [max_times, repeat_unit_1, ..., repeat_unit_n]
@@ -1179,9 +1117,9 @@ Thus, for the repeats problem, we take this approach:
 
 
 4. Outputs
-   1. For a given repeat unit, we want to print the number of times it occurs in the file. For this, =get_repeat_frequency(repeat_unit)= will be called iteratively over all the sequences in the file to build a dictionary which contains the number of times the repeat unit occurs in each sequence.
+   1. [X] For a given repeat unit, we want to print the number of times it occurs in the file. For this, =get_repeat_frequency(repeat_unit)= will be called iteratively over all the sequences in the file to build a dictionary which contains the number of times the repeat unit occurs in each sequence.
       This can be totaled to find the repeat times. 
-   2. We want to print the maximum occurance all repeats of length n, along with all the repeats which occur at maximum frequency. 
+   2. [X] We want to print the maximum occurance all repeats of length n, along with all the repeats which occur at maximum frequency. 
       =print_max_repeat(fasta_dict, n)= will print the dictionary returned by =max_occurance_n()=
 
 
@@ -1288,7 +1226,7 @@ Thus, for the repeats problem, we take this approach:
 
 *** The =max_occurance_n(fasta_dict, n)= function
 
-#+begin_src python :session gdspyt :tangle no 
+#+begin_src python :session gdspyt :tangle ./repeats.py
   def max_occurance_n(fasta_dict, n):
       """This function returns the unit(s) with the maximum occurance with the number of times it occured."""
 
@@ -1348,12 +1286,13 @@ print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, 
       #first we get the max repeats list by calling the max_occurance_n function. Remember that the first position of the list returned by the function contains the maximum frequency
       max_repeats_list = max_occurance_n(fasta_dict, n)
 
-      print("The repeat of length", n, "occurs", max_repeats_list[0], "times in the file.")
+      print("The repeat of length", n, "occurs a max of", max_repeats_list[0], "times in the file.")
       print("The following repeats occur at the maximum frequency:")
       i = 1 #because we want to print from the second position of the list
       list_len = len(max_repeats_list)
-      while(i < listlen):
+      while(i < list_len):
           print(max_repeats_list[i])
+          i = i + 1 
 
       return 0
 #+end_src
@@ -1361,5 +1300,3 @@ print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py 
 print_max_repeat(fast_dict, 8)
 #+end_src
-*** For fun
-We can iterate over all numbers from n1 to n2 and find the number n for which the frequency of repeats is the highest. 

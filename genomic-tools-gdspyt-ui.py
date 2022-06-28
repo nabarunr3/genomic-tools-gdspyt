@@ -162,12 +162,13 @@ def print_max_repeat(fasta_dict, n):
     #first we get the max repeats list by calling the max_occurance_n function. Remember that the first position of the list returned by the function contains the maximum frequency
     max_repeats_list = max_occurance_n(fasta_dict, n)
 
-    print("The repeat of length", n, "occurs", max_repeats_list[0], "times in the file.")
+    print("The repeat of length", n, "occurs a max of", max_repeats_list[0], "times in the file.")
     print("The following repeats occur at the maximum frequency:")
     i = 1 #because we want to print from the second position of the list
     list_len = len(max_repeats_list)
-    while(i < listlen):
+    while(i < list_len):
         print(max_repeats_list[i])
+        i = i + 1 
 
     return 0
 

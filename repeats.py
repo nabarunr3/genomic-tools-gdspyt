@@ -56,3 +56,23 @@ def get_file_repeat_units(fasta_dict, n):
                 unit_list.append(repeat_unit)
 
     return file_unit_times_dict
+
+def max_occurance_n(fasta_dict, n):
+    """This function returns the unit(s) with the maximum occurance with the number of times it occured."""
+
+    repeat_units_dict = get_file_repeat_units(fasta_dict, n)
+    max_times = 0
+
+    for repeat_unit, times in repeat_units_dict.items():
+        if times > max_times:
+            max_times = times
+
+    #now we build the max_repeats list. A list is used here because there can be more than one repeat unit with the maximum occurance
+    max_repeats_list = []
+    #we assign the first position of the max_repeats_list with the max time of occurance 
+    max_repeats_list.append(max_times)
+    for repeat_unit, times in repeat_units_dict.items():
+        if times == max_times:
+            max_repeats_list.append(repeat_unit)
+
+    return max_repeats_list
