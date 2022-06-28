@@ -56,11 +56,6 @@ for keys in fast_dict:
     #print(fast_dict[keys]) #prints all sequences, hence commented out
 print("\nThere are a total of", len(fast_dict), "sequences in the file.")
 
-# Printing length information of sequences
-
-from seqlen_compare import *
-seq_len_compare(fast_dict)
-
 #first we got to import the functions which store sequence lengths of a file in the form of a dictionary.
 from temp import * 
 
@@ -143,6 +138,10 @@ def print_longest_shortest_ORFs(fasta_dict):
     return 0
 
 from repeats import *
+print("\n\nThe following repeats of length", 8, "have been identified.\n")
+print(get_file_repeat_units(fast_dict, 8))
+
+from repeats import *
 
 def repeat_times_file(fasta_dict, repeat):
     """This returns the the frequency of occurance of a repeat in the file."""
@@ -152,9 +151,10 @@ def repeat_times_file(fasta_dict, repeat):
     for ID, sequence in fasta_dict.items():
         frequency = frequency + get_repeat_frequency(sequence, repeat)
 
-    print frequency
+    return frequency
 
-    return 0
+input_repeat_unit = 'CGCGCTCG'
+print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, input_repeat_unit))
 
 def print_max_repeat(fasta_dict, n):
     """This function prints the maximum number of times of occurance of repeat units of lengths n and all such repeat units with occur with the maximum frequency"""
@@ -170,3 +170,5 @@ def print_max_repeat(fasta_dict, n):
         print(max_repeats_list[i])
 
     return 0
+
+print_max_repeat(fast_dict, 8)

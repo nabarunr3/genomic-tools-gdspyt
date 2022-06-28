@@ -18,8 +18,8 @@ def get_repeat_frequency(sequence, repeat_unit):
 
     return repeat_count
 
-def get_repeat_units(sequence, n):
-    """This function gets a dictionary containing all subsequences of length n which occur repeatedly, that is, two times or more."""
+def get_seq_repeat_info(sequence, n):
+    """This function gets a dictionary containing all subsequences of length n which occur repeatedly, that is, two times or more, in a sequence."""
 
     sequence_repeats_dict = {}
 
@@ -36,3 +36,23 @@ def get_repeat_units(sequence, n):
         i = i + 1 
 
     return sequence_repeats_dict
+
+def get_file_repeat_units(fasta_dict, n):
+    #dictionary storing the non-unique repeat information of the file by calling get_seq_repeat_info()
+    file_repeat_info = {}
+    for uid, sequence in fasta_dict.items():
+        file_repeat_info[uid] = get_seq_repeat_info(sequence, n)
+
+    #dictionary to store the times of occurance of each unique repeat unit in the file 
+    file_unit_times_dict = {}
+    #to help us keep track of the unique repeat units
+    unit_list = []
+    for uid, sequence_repeat_info in file_repeat_info.items():
+        for repeat_unit, times in sequence_repeat_info.items():
+            if repeat_unit in unit_list:
+                file_unit_times_dict[repeat_unit] = file_unit_times_dict[repeat_unit] + times
+            else:
+                file_unit_times_dict[repeat_unit] = times
+                unit_list.append(repeat_unit)
+
+    return file_unit_times_dict
