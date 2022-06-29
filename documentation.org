@@ -1,80 +1,69 @@
 #+title:A set of sequence manipulation code
 
 * Roadmap
-** TODO Fix the ORF question to find ORFs as described in  [[file:new_information.org][new_information.org]].
+
+** TODO Create the UI 
+
+** TODO Include start and end positions in the =print_longest_shortest_ORFs= output
+
+** TODO Implement Longest ORF in a given frame 
+
+** TODO Implement longest ORF in a given identifierxs
+** DONE Fix the ORF question to find ORFs as described in  [[file:new_information.org][new_information.org]].
+CLOSED: [2022-06-29 Wed 10:12]
 ** DONE Test and debug repeats 
 CLOSED: [2022-06-29 Wed 00:55]
 ** DONE Find repeats 
 CLOSED: [2022-06-27 Mon 12:34]
 * Table of Contents                                                 :toc@2:
 - [[#roadmap][Roadmap]]
+  - [[#create-the-ui][Create the UI]]
+  - [[#include-start-and-end-positions-in-the-print_longest_shortest_orfs-output][Include start and end positions in the =print_longest_shortest_ORFs= output]]
+  - [[#implement-longest-orf-in-a-given-frame][Implement Longest ORF in a given frame]]
+  - [[#implement-longest-orf-in-a-given-identifierxs][Implement longest ORF in a given identifierxs]]
   - [[#fix-the-orf-question-to-find-orfs-as-described-in--new_informationorg][Fix the ORF question to find ORFs as described in  new_information.org.]]
   - [[#test-and-debug-repeats][Test and debug repeats]]
   - [[#find-repeats][Find repeats]]
 - [[#reading-and-comparing-sequences-in-a-given-fasta-file][Reading and comparing sequences in a Given FASTA file]]
-  - [[#parsing-a-fasta-file][Parsing a FASTA File]]
+  - [[#example-sequence][Example sequence]]
+  - [[#question][Question]]
   - [[#comparing-sequences-in-the-file][Comparing sequences in the file]]
 - [[#identification-and-mapping-of-open-reading-frames-orfs][Identification and Mapping of Open Reading Frames (ORFs)]]
-  - [[#question][Question]]
+  - [[#question-1][Question]]
   - [[#approach][Approach]]
   - [[#finding-all-orfs-in-a-single-frame][Finding all ORFs in a single frame]]
   - [[#finding-all-the-frames-of-a-sequence][Finding all the frames of a sequence]]
   - [[#finding-all-orfs-in-a-sequence][Finding all ORFs in a sequence]]
   - [[#printing-all-orfs-in-a-sequence][Printing all ORFs in a sequence]]
+  - [[#print-all-orfs-in-the-file][Print all ORFs in the file]]
   - [[#comparing-and-printing-the-longest-orfs-of-a-sequence][Comparing and printing the longest ORFs of a sequence]]
-  - [[#printing-orf-information-of-all-sequences-in-a-file][Printing ORF information of all sequences in a file]]
   - [[#printing-the-longest-and-shortest-orfs-among-all-sequences-in-a-file][Printing the longest and shortest ORFs among all sequences in a file]]
 - [[#mapping-repeats-in-the-file][Mapping Repeats in the File]]
-  - [[#question-1][Question]]
+  - [[#question-2][Question]]
   - [[#our-approach][Our Approach]]
   - [[#getting-frequency-of-a-given-repeat][Getting frequency of a given repeat]]
   - [[#getting-the-frequency-of-all-repeat-units-of-length-n-in-a-sequence][Getting the frequency of all repeat units of length n in a sequence]]
   - [[#getting-the-repeat-information-of-all-unique-repeats-for-all-sequences-of-a-file][Getting the repeat information of all unique repeats for all sequences of a file]]
   - [[#finding-the-most-frequent-repeat-units-of-length-n-in-a-file][Finding the most frequent repeat unit(s) of length 'n' in a file]]
-  - [[#outputs][Outputs]]
+- [[#creating-the-ui][Creating the UI]]
+  - [[#taking-the-input-and-generating-the-options][Taking the input and generating the options]]
+  - [[#broad-file-operations][Broad file operations]]
+  - [[#open-reading-frames-operations][Open Reading frames operations]]
+  - [[#repeats--operations][Repeats  operations]]
 
 * Reading and comparing sequences in a Given FASTA file
-(1) How many records are in the file? A record in a FASTA file is defined as a single-line header, followed by lines of sequence data. The header line is distinguished from the sequence data by a greater-than (">") symbol in the first column. The word following the ">" symbol is the identifier of the sequence, and the rest of the line is an optional description of the entry. There should be no space between the ">" and the first letter of the identifier. 
-
-Separate functions for the following tasks are to be written:
-1. Accepting a FASTA file as input from the command line [other arguments if necessary will be accepted later by modifying this code]
-2. Reading from a FASTA file and putting sequences into a dictionary
-3. Using the dictionary to count and return the number of sequences
-** Parsing a FASTA File
-*** Opening the file 
-#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py
-  #!/usr/bin/python3
-  #the following code reads from a FASTA file and puts the sequences in a dictionary
-  import sys
-  def usage():
-      print
-      """
-      The program allows the user to ....
-
-      Basic Usage:
-
-      python3 fastinfo.py <filename.FASTA> [option1] [option2...]
-
-      """
-      return 0
-
-  #now we open the file, which is stored in the second position of the sys.argv[] list
-  try:
-      f = open(sys.argv[1], 'r')
-      print("FASTA File found. Processing...")
-  except IOError:
-      print("The file does not exist! Please recheck the filename.")
-      sys.exit()
-
+** Example sequence
+#+begin_src python :session gdspyt :tangle no 
+test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
 #+end_src
 
 #+RESULTS:
 
 *** Putting the sequences of the file in a dictionary
-#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py :comments org
+#+begin_src python :tangle ./parsefasta.py 
   def multi_FASTA_to_dict(FASTA_file_object):
       """
-      This function opens a FASTA file and puts the sequences in a dictionary. 
+      This function takes a file object of a FASTA file and puts the sequences in a dictionary. 
       """
       sequence_dictionary = {}
       for line in FASTA_file_object:
@@ -96,39 +85,14 @@ Separate functions for the following tasks are to be written:
       return sequence_dictionary
 #+end_src
 
-#+RESULTS:
-: None
+** Question 
+(1) How many records are in the file? A record in a FASTA file is defined as a single-line header, followed by lines of sequence data. The header line is distinguished from the sequence data by a greater-than (">") symbol in the first column. The word following the ">" symbol is the identifier of the sequence, and the rest of the line is an optional description of the entry. There should be no space between the ">" and the first letter of the identifier. 
 
-*** Printing file information 
-Now we print the sequence identifiers in the dictionary and the number of entries in the multi-FASTA file. 
-#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py :comments org 
-  fast_dict = multi_FASTA_to_dict(f)
-  print("\nThe following identifiers have been retrieved:")
-  for keys in fast_dict:
-      print(keys)
-      #print(fast_dict[keys]) #prints all sequences, hence commented out
-  print("\nThere are a total of", len(fast_dict), "sequences in the file.")
-#+end_src
-
-#+RESULTS:
-
-*** Printing length information of sequences
-#+begin_src python :tangle no :comments org 
-  from seqlen_compare import *
-  seq_len_compare(fast_dict)
-#+end_src
-
-#+RESULTS:
-
-*** Example sequence
-#+begin_src python :session gdspyt :tangle ./repeats.py
-test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
-#+end_src
-
-#+RESULTS:
-
+Separate functions for the following tasks are to be written:
+1. Accepting a FASTA file as input from the command line [other arguments if necessary will be accepted later by modifying this code]
+2. Reading from a FASTA file and putting sequences into a dictionary
+3. Using the dictionary to count and return the number of sequences
 ** Comparing sequences in the file
-
 *** Question 
 #+begin_quote
 (2) What are the lengths of the sequences in the file? What is the longest sequence and what is the shortest sequence? Is there more than one longest or shortest sequence? What are their identifiers? 
@@ -138,7 +102,7 @@ The way to go about this is:
 - Find the length of each seqeunce in the dictionary and put this in another dictionary with keys as the identifiers and values as the length. Use this dictionary for comparison.
 - Now, find the longest and shortest sequence and print their identifiers and lengths.
 *** Creating a dictionary storing identifiers and sequence lengths and printing it 
-#+begin_src python :tangle ./seqlen_compare.py :comments org :mkdirp 
+#+begin_src python :tangle ./seqlen_compare.py 
   def seq_len_compare(seq_dict):
       """This function compares the length of DNA sequences in a dictionary
       """
@@ -502,34 +466,89 @@ Having defined the data structure, let us break up the scheme of work into granu
 This was needed because the previous function considers all ORFs, even for the start codons that occur between a start and stop codon.
 
 This new function ignores all start codons between a previously discovered start codon and a stop codon. 
-#+begin_src python
+#+begin_src python :session gdspyt :tangle ./orfs.py
   def frame_orfs(frame):
-      """This function extracts all ORFs from a sequence, ignoring start codons that fall between a previous start codon and stop codon."""
+      """
+      This function extracts all non-overlapping ORFs from a sequence, 
+      that is, ignoring start codons that fall between 
+      a previous start codon and stop codon.
+
+      """
 
       #define the start and stop codons
       start_codon = "ATG"
-    
       stop_codon_tuple = ("TAA", "TAG", "TGA")
+
+      #initialize the dictionary to store the orfs, in the form of
+      # orf_dictionary = {
+      #     ORF1:[["start_codon, ...., stop_codon"]
+      #           starting_position,
+      #           stopping_position],
+      #     ORF2:[["start_codon, ...., stop_codon"]
+      #           starting_position,
+      #           stopping_position],
+      #     .
+      #     .
+      #     .
+      #     ORFn:[["start_codon, ...., stop_codon"]
+      #           starting_position,
+      #           stopping_position]}
+      orf_dict = {}
 
       #trimming the frame (from the end) to number of nucleotides in multiples of 3
       trimmed_frame = ""
       for i in range((len(frame) - (len(frame)%3))):
           trimmed_frame = trimmed_frame + frame[i]
 
-    
+      #this will keep track of the orf number
+      orf_count = 0  
       h = 0
       while (h <= (len(trimmed_frame) - 3)):
           codon = trimmed_frame[h:h+3]
 
           if codon == start_codon:
+              start_position = h 
+
+              #we move to check from the next codon, for a stop codon 
+              h = h + 3
+              #we now enter the stop codon searching loop 
               while (h <= (len(trimmed_frame) - 3)):
                   codon = trimmed_frame[h:h+3]
+
                   if codon in stop_codon_tuple:
+                      stop_position = h 
+                      orf_count = orf_count + 1 
+
+                      #to assign a name to the ORF, which will act as a key in the orf_dict. 
+                      orf_name = "ORF" + str(orf_count) 
+                      orf_dict[orf_name] = []
+
+                      #now we store the ORF information between start and stop positions in orf_dict
+                      #first we store the list of codons in a nested list in the first position of the list corresponding to the orf_number 
+                      orf_dict[orf_name].append([])
+                      j = start_position
+                      while(j <= stop_position):
+                          codon = trimmed_frame[j:j+3]
+                          orf_dict[orf_name][0].append(codon)
+                          j = j + 3
+                      #next we store the start and stop positions in the second and third positions of the orf_name list, respectively 
+                      orf_dict[orf_name].append(start_position)
+                      #we add 3 to the stop position to consider the 3rd nucleotide of the stop codon as the stop position
+                      orf_dict[orf_name].append((stop_position + 3)) 
+
+                      #we now break out of the stop codon searching loop 
                       break
-            
+
+                  #if the codon is not a stop codon, we increment h by 3 to search for another codon 
+                  h = h + 3
+
+          #if the codon is not a start codon, to move to the next test codon, have increment h by 3
+          h = h + 3 
+
+      return orf_dict 
 #+end_src
 **** Deprecated 
-#+begin_src python :session gdspyt :tangle ./temp.py 
+#+begin_src python :session gdspyt :tangle no  
   def frame_orfs(frame):
       #define the start and stop codons
       start_codon = "ATG"
@@ -596,13 +615,11 @@ This new function ignores all start codons between a previously discovered start
 *** Testing the =frame_orfs()= function
 #+begin_src python :session gdspyt :tangle no
   orfdict = frame_orfs(test_sequence)
-  print("Found", len(orfdict), "sequences in frame.")
+  print("Found", len(orfdict), "open reading frames in frame.")
   for ORF, info in orfdict.items():
       print(ORF, "\n", info[0], "\n", info[1], info[2])
       # print(ORF, "\n", info[0][0], info[0][1], info[0][2], "...", info[0][-2], info[0][-1], "\n", info[1], info[2])
 #+end_src
-
-#+RESULTS:
 
 Thus, we have successfully found all of the ORFs in one single frame.
 
@@ -612,7 +629,7 @@ For the next 3 frames, the reverse complement of the sequence has to be used.
 *** Finding reverse complement of sequences
 **** Revese of a Sequence
 ***** The =sequence_reverse()= function 
-#+begin_src python :session gdspyt :tangle ./temp.py 
+#+begin_src python :session gdspyt :tangle ./orfs.py 
   #This is a simple function to reverse a string
   def sequence_reverse(sequence):
       """
@@ -644,7 +661,7 @@ print(sequence_reverse(test_sequence))
 
 **** Complement of a sequence
 ***** The =dna_complement()= function 
-#+begin_src python :session gdspyt :tangle ./temp.py 
+#+begin_src python :session gdspyt :tangle ./orfs.py 
   #this function returns the complement of a DNA sequence entered, NOT the reverse complement
   def dna_complement(sequence):
       """
@@ -677,7 +694,7 @@ print(dna_complement(test_sequence))
 
 **** Reverse complement of a sequence
 ***** The =reverse_complement()= function 
-#+begin_src python :session gdspyt :tangle ./temp.py
+#+begin_src python :session gdspyt :tangle ./orfs.py
   #a simple function which calls the reverse string and sequence complement functions to calculate the reverse complements
   def reverse_complement(sequence):
       return(dna_complement(sequence_reverse(sequence)))
@@ -694,7 +711,29 @@ print(reverse_complement(test_sequence))
 : GACGACCGACCGCGCGGCGGTCGCGAAGGCGCTCGGCGTCGCCCCGGAGAAAGTCCAGATCTTCACGCTGACCTCGGGCGGCGACTATGGCCGGCGCTCGACGCCGACGTCGGACTACGTGGTCGAAGCCGCCCACGTGTCCGCCGCGTACCTCGCGGCCGGCCATCTCGGCCCCGTCAAGACGATCTGGACGCGCGAGGACGATCTGCGCGGCGGCTATTACCGCCCGATGGTGCTGCATCGCGTCGACATCGGCGTGGACGGCAGCGGCGCCGTGCGCGACTGGCAGCACGTGGTCGTCGGCCAGTCTGTGCTGAAGGGCTCGCCGCTCGAGCGCACGACGATGCTCAAGCGCGGCACCGATCCGAGCCTGACCGAAGGCGTGACGAACAGCCCGTACGGCTTCCCGATGCAGGTATCGGTTCATCAGACCGAGGCCGACGTGCCGGTCCAGACGTGGCGCTCGGGCGGCAACTCGCATACGGCGTTCGTGATGGAAACGCTGGTCGACGAGCTCGCGCACTCGGCGCGGCAGGATCCGGTCGCCTACCGGATGACGCGGCTGGCCGGCCCCGAGCACGCCGCGCATCGGCAGGCGCTCGCGCTGGCCGTCGACAAGTCCGGCTACGGCGCGCGCACGCTGCCGGCCGGGCACGCGTGGGGCGTCGCGATGCACGAAACGGCCGGCTCGGTCGTCGCGTACGTGACGGAAGTGTCGATCGAAGCGCAACAACCGCGCGTGCATCGCGTGACGGCCGGCGTGTATGCGGGCCGCATCGTCAACCCGACCGGCGCGCAAGCGCAGATCCAGGGCGGCGCGCTGTTCGGTCTCGCGACGACGAAGCCCGGCTTCGCGATCGACGTCGACCATGGCGCGGTCCGCAACGCCGGTTTCGCCGACTATTCGCCGATACGCATGCAGGAAGCGCCGCCGGTGGATGTCTTCTTCGTGCCGTCGGACGCCCAGCCGACCGGGTTGAGCGACGCCGGCGTGCCGCCGATCGCGCCGGCGGTGGCCAACGGTGCGTTCGTGCTGACCGGCGAGCGGGTGCATGCGTTGCCGTTCCCCCCGATGCTGGTCGCGTCGACCGCCCCCGTGATGCCGGCGGCCCCCGCGACGGCGGCCGACGAGGATCCGTACGGCAACCTGCCGGCCGGCGGCTGCCGGCTGCCGCACAAGGTCAAGCCT
 
 *** The =frame_extract()= function
-#+begin_src python :session gdspyt :tangle ./temp.py 
+For the coursera course I will include only the forward reading frames, not the reverse reading frames. This will enable me to pass the test.
+
+**** Using only the forward 1, 2 and 3 reading frames
+#+begin_src python :session gdspyt :tangle ./orfs.py 
+  def frame_extract(sequence):
+      """This function extracts all the 6 ORFs from a given sequence."""
+
+      #initializing the dictionary which will store all the sequences of all the frames 
+      frame_dictionary = {}
+
+      #this variable stores the frame numbers 
+      frame_no = 1
+
+      #loop extracting frames 1, 2 and 3
+      for i in range(3):
+          frame_name = "Frame" + str(frame_no)
+          frame_dictionary[frame_name] = sequence[i:]
+          frame_no = frame_no + 1
+
+      return(frame_dictionary)
+#+end_src
+**** Using all 6 reading frames
+#+begin_src python :session gdspyt :tangle no  
   def frame_extract(sequence):
       """This function extracts all the 6 ORFs from a given sequence."""
 
@@ -741,7 +780,7 @@ print(reverse_complement(test_sequence))
 To find all the ORFs in a sequence, we simply pass a sequence to a function which will call  =frame_extract()= to get a dictionary of frames. Another loop will pass the entries of this frame dictionary to =frame_orfs()= function, to get all the ORFs in the frame. These will be stored in another dictionary and returned.
 
 *** The =sequence_orfs()= function 
-#+begin_src python :session gdspyt :tangle ./temp.py 
+#+begin_src python :session gdspyt :tangle ./orfs.py 
   def sequence_orfs(sequence):
       """This function finds and returns all the ORFs in all frames of a sequence."""
       #initializing the dictionary to store all the frame information of the sequence 
@@ -778,7 +817,7 @@ To find all the ORFs in a sequence, we simply pass a sequence to a function whic
 ** Printing all ORFs in a sequence 
 Now we take the have to print the output from the =sequence_orfs()= function
 ***  Function =print_sequence_orfs()= 
-#+begin_src python :session gdspyt :tangle ./temp.py
+#+begin_src python :session gdspyt :tangle ./orfs.py
   def print_sequence_orfs(sequence):
       """This function prints the ORF information of a sequence in a presentable format."""
 
@@ -797,6 +836,16 @@ Now we take the have to print the output from the =sequence_orfs()= function
 #+begin_src python :session gdspyt :tangle no
   print_sequence_orfs(test_sequence)
 #+end_src
+** Print all ORFs in the file
+*** Function to get the and print the ORFs  
+#+begin_src python :session gdspyt :tangle ./orfs.py
+  def print_orfs_of_file(fasta_dict):
+      """This function takes as input a dictionary containing all sequences in a file in the format "identifier:sequence" and prints all the ORFs of all reading frames of all sequences of a file."""
+
+      for identifier, sequence_orf_info in fasta_dict.items():
+          print("* ++++++", identifier, "++++++")
+          print_sequence_orfs(sequence_orf_info)
+#+end_src
 ** Comparing and printing the longest ORFs of a sequence 
 Now we compare all the ORFs in a given sequence and print them. The function will obtain the sequence dictionary from the =sequence_orfs()= function and return the following information.
 
@@ -807,7 +856,7 @@ Now we compare all the ORFs in a given sequence and print them. The function wil
   shortest_orf_dictionary = {frame_no_orf_no:[start_pos, end_pos], frame_no_orf_no:[start_pos, end_pos],...}
 #+end_src
 *** The =compare_seq_orfs()= function 
-#+begin_src python :session gdspyt :tangle ./temp.py 
+#+begin_src python :session gdspyt :tangle ./orfs.py 
   def compare_seq_orfs(sequence):
       """This function compares all the ORFs in a sequence."""
 
@@ -857,29 +906,11 @@ Now we compare all the ORFs in a given sequence and print them. The function wil
   comparison_tuple = compare_seq_orfs(test_sequence)
   print(comparison_tuple)
 #+end_src
-** Printing ORF information of all sequences in a file
-*** The =print_orfs_of_file()= function 
-#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
-  #first we got to import the functions which store sequence lengths of a file in the form of a dictionary.
-  from temp import * 
-
-  def print_orfs_of_file(fasta_dict):
-      """This function takes as input a dictionary containing all sequences in a file in the format "identifier:sequence" and prints all the ORFs of all reading frames of all sequences of a file."""
-
-      for identifier, sequence_orf_info in fasta_dict.items():
-          print("* ++++++", identifier, "++++++")
-          print_sequence_orfs(sequence_orf_info)
-#+end_src
-
-*** Testing =print_orfs_of_file()= function
-#+begin_src python :tangle no 
-print_orfs_of_file(fast_dict)
-#+end_src
-
 ** Printing the longest and shortest ORFs among all sequences in a file
+*** Procedure 
 Till now we can compare all the ORFs in a particular sequence with the =compare_seq_orfs()= function, which returns a tuple of type =(max_len, max_len_dict, min_len, min_len_dict)=.
 
-Now, to compare ORFs of all sequences in a file, the =file_ORF_compare_lengths()= function must first store the maximum and minimum ORF lengths of all the sequences in a dictionary of type: 
+1. Now, to compare ORFs of all sequences in a file, the =file_ORF_compare_lengths()= function must first store the maximum and minimum ORF lengths of all the sequences in a dictionary of type: 
 
 #+begin_src python
   file_orf_len_dict = {
@@ -920,14 +951,11 @@ Now, to compare ORFs of all sequences in a file, the =file_ORF_compare_lengths()
                                     .
                                     .,
                                     ORF_an: [start_pos, end_pos]}})}
-    
-
-
 #+end_src
 
-Then there will be a comparison between the sequences, which has the longest and shortest ORFs. The =file_ORF_compare_lengths()= function will return the lengths of the longest and shortest ORFs in the file.
+2. Then there will be a comparison between the sequences, which has the longest and shortest ORFs. The =file_ORF_compare_lengths()= function will return the lengths of the longest and shortest ORFs in the file.
 
-The next function =get_all_ORFs_of_length(x)= will fetch all the ORFs in a file corresponding to a given length =x= and return a dictionary of type:
+3. The next function =get_all_ORFs_of_length(x)= will fetch all the ORFs in a file corresponding to a given length =x= and return a dictionary of type:
 
 #+begin_src python
   file_ORFs_len_x_dict =  {sequence_a1:
@@ -951,10 +979,10 @@ The next function =get_all_ORFs_of_length(x)= will fetch all the ORFs in a file 
                             {orf_c1: [start, end], ..., orf_cn: [start, end]}}}
 #+end_src
 
-A final function, =print_longest_shortest_ORFs(fasta_dict)= will process the longest and shortest ORFs returned by the =file_ORF_compare_lengths()= into the =get_all_ORFs_of_length()= function to print all longest and shortest ORFs in a file. 
+4. A final function, =print_longest_shortest_ORFs(fasta_dict)= will process the longest and shortest ORFs returned by the =file_ORF_compare_lengths()= into the =get_all_ORFs_of_length()= function to print all longest and shortest ORFs in a file. 
 
-*** Finding the longest and shortest lengths of all ORFs in a file 
 
+*** Getting the max and min lengths of an ORF
 **** The =file_ORF_compare_lengths()= function
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py  
   def file_ORF_compare_lengths(fasta_dict):
@@ -988,12 +1016,13 @@ A final function, =print_longest_shortest_ORFs(fasta_dict)= will process the lon
   print(file_ORF_compare_lengths(fast_dict))
 #+end_src
 
-*** Getting all ORFs in  a file of length x 
+
+*** Getting all ORFs in  a file of length x
 **** The =get_all_ORFs_of_length()= function
-#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
+This will allow is to get all ORFs in the file corresponding to a given length
+#+begin_src python :session gdspyt :tangle ./orfs.py
   def get_all_ORFs_of_length(fasta_dict, x):
       """This function gets all ORFs of length x from a file whose sequence information has been stored in fasta_dict"""
-
       all_ORFs_dict = {}
 
       file_ORF_lengths_dict = {}
@@ -1013,17 +1042,15 @@ A final function, =print_longest_shortest_ORFs(fasta_dict)= will process the lon
                 
                 
       return dict_file_orfs_length_x
-
 #+end_src
 
 **** Test =get_all_ORFs_of_length()= function
 #+begin_src python :session gdspyt :tangle no
 print(get_all_ORFs_of_length(fast_dict, 5))
 #+end_src
-
-*** Printing all the longest and shortest ORFs in a file 
-**** The =print_longest_shortest_ORFs(fasta_dict)= function
-#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
+*** Printing all the longest and shortest ORFs in a file
+**** the =print_longest_shortest_ORFs(fasta_dict)= function
+#+begin_src python :session gdspyt :tangle ./orfs.py
   def print_longest_shortest_ORFs(fasta_dict):
       """This function prints all the longest and shortest ORFs, considering all the frames of all sequences in a file """
 
@@ -1047,12 +1074,6 @@ print(get_all_ORFs_of_length(fast_dict, 5))
 
       return 0 
 #+end_src
-
-**** Test =print_longest_shortest_ORFs(fasta_dict)= function
-#+begin_src python :session gdspyt :tangle no
-print_longest_shortest_ORFs(fast_dict)
-#+end_src
-
 
 * Mapping Repeats in the File
 
@@ -1215,7 +1236,7 @@ Thus, for the repeats problem, we take this approach:
 #+end_src
 
 *** Testing =get_file_repeat_units()=
-#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
+#+begin_src python :session gdspyt :tangle no
   from repeats import *
   print("\n\nThe following repeats of length", 8, "have been identified.\n")
   print(get_file_repeat_units(fast_dict, 8))
@@ -1253,14 +1274,83 @@ Thus, for the repeats problem, we take this approach:
 max_repeats_list = max_occurance_n(fast_dict, 8) 
 print(max_repeats_list)
 #+end_src
-** Outputs
+* Creating the UI
+Now all that is left to do is to create the UI.
+** TODO Taking the input and generating the options 
+getopt module (inbuilt)
+*** Opening the file 
+#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py
+  #!/usr/bin/python3
+  import sys
+  def usage():
+      print
+      """
+      The program allows the user to ....
+
+      Basic Usage:
+
+      python3 fastinfo.py <filename.FASTA> [option1] [option2...]
+
+      """
+      return 0
+
+  #now we open the file, which is stored in the second position of the sys.argv[] list
+  try:
+      f = open(sys.argv[1], 'r')
+      print("FASTA File found. Processing...")
+  except IOError:
+      print("The file does not exist! Please recheck the filename.")
+      sys.exit()
+
+#+end_src
+** TODO Broad file operations
+*** Importing the parsefasta module and reading the file into a dictionary
+#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py  
+  from parsefasta import *
+  fast_dict = multi_FASTA_to_dict(f)
+#+end_src
+*** Printing the number of sequences of the file 
+#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py  
+  print("\nThere are a total of", len(fast_dict), "sequences in the file.")
+#+end_src
+*** TODO Printing the identifiers of the sequences with their lengths, in a table  
+#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py  
+  print("\nThe following identifiers have been retrieved:")
+  print("Identifier \t\t\t Length")
+  for keys, sequence in fast_dict.items():
+      print(keys, "\t", len(sequence))
+#+end_src
+*** TODO Printing the longest and shortest sequence of the file
+#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py  
+  from seqlen_compare import *
+  seq_len_compare(fast_dict)
+#+end_src
+** Open Reading frames operations 
+#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py
+  from orfs import *
+#+end_src 
+
+*** Printing all  ORFs in a file 
+#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
+print_orfs_of_file(fast_dict)
+#+end_src
+
+*** Printing length of  longest ORF(s), those ORFs  and the identifiers containing them. 
+#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
+print_longest_shortest_ORFs(fast_dict)
+#+end_src
+
+*** TODO For a given identifier in the file, what is the longest ORF for that identifier 
+*** TODO Length of the longest ORF in the file, its identifier and the starting position in the sequence
+** Repeats  operations
+repeats module 
 *** Importing the =repeats.py= module
-Outputs are placed in ./genomic-tools-gdspyt-ui.py file, where repeats.py is imported to get all the functions:
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py
   from repeats import *
 #+end_src
 
 *** Printing the frequency of a given repeat in a file 
+**** Function to Get the frequency 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
   def repeat_times_file(fasta_dict, repeat):
       """This returns the the frequency of occurance of a repeat in the file."""
@@ -1272,13 +1362,16 @@ Outputs are placed in ./genomic-tools-gdspyt-ui.py file, where repeats.py is imp
 
       return frequency
 #+end_src
-
-*** TODO Move to end of =genomic-tools-gdspyt-ui.py= file 
+**** Printing the frequency
+We will gradually replace the =input_repeat_unit= variable's value with a user input.  
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
 input_repeat_unit = 'CGCGCTCG'
 print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, input_repeat_unit))
 #+end_src
-*** Printing repeat units with maximum frequency in the file 
+
+
+*** Printing repeat units of length 'n' with maximum frequency in the file 
+**** Function to get the repeat units 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
   def print_max_repeat(fasta_dict, n):
       """This function prints the maximum number of times of occurance of repeat units of lengths n and all such repeat units with occur with the maximum frequency"""
@@ -1296,7 +1389,7 @@ print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, 
 
       return 0
 #+end_src
-*** TODO Move to end of =genomic-tools-gdspyt-ui.py=
+**** Printing the repeat units 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py 
 print_max_repeat(fast_dict, 8)
 #+end_src

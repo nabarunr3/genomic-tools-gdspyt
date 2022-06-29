@@ -1,59 +1,80 @@
 def frame_orfs(frame):
+    """
+    This function extracts all non-overlapping ORFs from a sequence, 
+    that is, ignoring start codons that fall between 
+    a previous start codon and stop codon.
+
+    """
+
     #define the start and stop codons
     start_codon = "ATG"
-    # print("Calculating all ORFs in frame of length", len(frame), "...")
     stop_codon_tuple = ("TAA", "TAG", "TGA")
+
+    #initialize the dictionary to store the orfs, in the form of
+    # orf_dictionary = {
+    #     ORF1:[["start_codon, ...., stop_codon"]
+    #           starting_position,
+    #           stopping_position],
+    #     ORF2:[["start_codon, ...., stop_codon"]
+    #           starting_position,
+    #           stopping_position],
+    #     .
+    #     .
+    #     .
+    #     ORFn:[["start_codon, ...., stop_codon"]
+    #           starting_position,
+    #           stopping_position]}
+    orf_dict = {}
 
     #trimming the frame (from the end) to number of nucleotides in multiples of 3
     trimmed_frame = ""
     for i in range((len(frame) - (len(frame)%3))):
         trimmed_frame = trimmed_frame + frame[i]
 
-    #now get all the positions of start and stop codons
-    start_pos_list = []
-    stop_pos_list = []
-
-    #initialize the while loop variable
+    #this will keep track of the orf number
+    orf_count = 0  
     h = 0
     while (h <= (len(trimmed_frame) - 3)):
         codon = trimmed_frame[h:h+3]
 
-        #storing the start positions 
         if codon == start_codon:
-            start_pos_list.append(h)
+            start_position = h 
 
-        #storing the stop positions 
-        if codon in stop_codon_tuple:
-            # print(codon)
-            stop_pos_list.append(h)
+            #we move to check from the next codon, for a stop codon 
+            h = h + 3
+            #we now enter the stop codon searching loop 
+            while (h <= (len(trimmed_frame) - 3)):
+                codon = trimmed_frame[h:h+3]
 
-        #incrementing i by 3
-        h = h + 3
+                if codon in stop_codon_tuple:
+                    stop_position = h 
+                    orf_count = orf_count + 1 
 
-    # print(start_pos_list)
-    # print(stop_pos_list)
+                    #to assign a name to the ORF, which will act as a key in the orf_dict. 
+                    orf_name = "ORF" + str(orf_count) 
+                    orf_dict[orf_name] = []
 
-    #Now getting the ORFs.     
-    orf_dict = {}
-    i = 1 #initializing a variable to store the ORF number
-    for start_position in start_pos_list:
-        # a new list of stop positions is to be built which will contain stop positions after the start position
-        new_stop_pos_list = []
-        for stop_position in stop_pos_list:
-            if stop_position > start_position:
-                new_stop_pos_list.append(stop_position)
+                    #now we store the ORF information between start and stop positions in orf_dict
+                    #first we store the list of codons in a nested list in the first position of the list corresponding to the orf_number 
+                    orf_dict[orf_name].append([])
+                    j = start_position
+                    while(j <= stop_position):
+                        codon = trimmed_frame[j:j+3]
+                        orf_dict[orf_name][0].append(codon)
+                        j = j + 3
+                    #next we store the start and stop positions in the second and third positions of the orf_name list, respectively 
+                    orf_dict[orf_name].append(start_position)
+                    #we add 3 to the stop position to consider the 3rd nucleotide of the stop codon as the stop position
+                    orf_dict[orf_name].append((stop_position + 3)) 
 
-        #print(new_stop_pos_list)
-        for stop_posi in new_stop_pos_list:
-            # print(trimmed_frame[stop_posi:stop_posi+3])
-            orf_key = "ORF"+str(i)
-            orf_dict[orf_key] = [[],
-                                 start_position + 1, #+1 to start indexing from 1
-                                 stop_posi + 3]
-            for j in range(start_position, stop_posi+1):
-                orf_dict[orf_key][0].append(trimmed_frame[j:j+3])
-            #updating ORF number 
-            i = i + 1
+                    #we now break out of the stop codon searching loop 
+                    break
+
+                #if the codon is not a stop codon, we increment h by 3 to search for another codon 
+                h = h + 3
+
+        #if the codon is not a start codon, to move to the next test codon, have increment h by 3
+        h = h + 3 
 
     return orf_dict
 
@@ -114,18 +135,6 @@ def frame_extract(sequence):
         frame_dictionary[frame_name] = sequence[i:]
         frame_no = frame_no + 1
 
-    # print(frame_no)
-
-    sequence_reverse_complement = reverse_complement(sequence)
-
-    #loop extracting frames 4, 5, and 6
-    for i in range(3):
-        frame_name = "Frame" + str(frame_no)
-        frame_dictionary[frame_name] = sequence_reverse_complement[i:]
-        frame_no = frame_no + 1
-
-    # print(frame_no)
-
     return(frame_dictionary)
 
 def sequence_orfs(sequence):
@@ -170,6 +179,13 @@ def print_sequence_orfs(sequence):
 
     return 0
 
+def print_orfs_of_file(fasta_dict):
+    """This function takes as input a dictionary containing all sequences in a file in the format "identifier:sequence" and prints all the ORFs of all reading frames of all sequences of a file."""
+
+    for identifier, sequence_orf_info in fasta_dict.items():
+        print("* ++++++", identifier, "++++++")
+        print_sequence_orfs(sequence_orf_info)
+
 def compare_seq_orfs(sequence):
     """This function compares all the ORFs in a sequence."""
 
@@ -212,3 +228,48 @@ def compare_seq_orfs(sequence):
                 min_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
 
     return (max_len, max_len_dict, min_len, min_len_dict, seq_orf_len_dict)
+
+def get_all_ORFs_of_length(fasta_dict, x):
+    """This function gets all ORFs of length x from a file whose sequence information has been stored in fasta_dict"""
+    all_ORFs_dict = {}
+
+    file_ORF_lengths_dict = {}
+    for identifier, sequence in fasta_dict.items():
+        seq_info = compare_seq_orfs(sequence)
+        file_ORF_lengths_dict[identifier] = seq_info[4]
+
+
+    #initializing the list containing ORF of length x
+    dict_file_orfs_length_x = []
+    for identifier, identifier_info in file_ORF_lengths_dict.items():
+        for frame, frame_ORF_info in identifier_info.items():
+            for ORF, length in frame_ORF_info.items():
+                if length == x:
+                    ORF_coordinates = (identifier, frame, ORF)
+                    dict_file_orfs_length_x.append(ORF_coordinates)
+
+
+    return dict_file_orfs_length_x
+
+def print_longest_shortest_ORFs(fasta_dict):
+    """This function prints all the longest and shortest ORFs, considering all the frames of all sequences in a file """
+
+    #first we call the file_ORF_compare_lengths() to store the maximum and minimum ORF lengths of the file in a tuple returned by the function 
+    max_min_tuple = file_ORF_compare_lengths(fasta_dict)
+    #then we store the all the ORFs having the maximum and minimum lengths
+    max_ORF_list = get_all_ORFs_of_length(fasta_dict, max_min_tuple[0])
+    min_ORF_list = get_all_ORFs_of_length(fasta_dict, max_min_tuple[1])
+
+    #Finally to print them out in a nicely formatted way 
+    print("\n\nThe ORF(s) with the maximum lengths of", max_min_tuple[0], "are:")
+    print("\nIdentifier \t\t\t Frame \t\t ORF")
+    print("__________ \t\t\t _____ \t\t ___")
+    for i in range(len(max_ORF_list)):
+        print(max_ORF_list[i][0], "\t", max_ORF_list[i][1], "\t", max_ORF_list[i][2])
+    print("\n\nThe ORF(s) with the minimum lengths of", max_min_tuple[1], "are:")
+    print("\nIdentifier \t\t\t Frame \t\t ORF")
+    print("__________ \t\t\t _____ \t\t ___")
+    for i in range(len(min_ORF_list)):
+        print(min_ORF_list[i][0], "\t", min_ORF_list[i][1], "\t", min_ORF_list[i][2])
+
+    return 0

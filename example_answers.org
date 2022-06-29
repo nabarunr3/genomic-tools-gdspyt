@@ -1,0 +1,59 @@
+The following are answers to the questions have been arrived to from the following [[https://www.coursera.org/learn/python-genomics/discussions/all/threads/b-DTkFHjEeaZaBIe_mhavQ][thread]] on Coursera.
+
+Here are the results I get when I run my program on the example file:
+
+Record count: 25
+
+Longest sequence: 4805
+
+Shortest sequence: 512
+
+----
+
+longest ORF in reading frame 1 = 1686
+
+start index of this ORF is 2824
+
+seq_id of this ORF is gi|142022655|gb|EQ086233.1|323
+
+----
+
+longest ORF in reading frame 2 = 1371
+
+start index of this ORF is 65
+
+seq_id of this ORF is gi|142022655|gb|EQ086233.1|323
+
+----
+
+longest ORF in reading frame 3 = 1608
+
+start index of this ORF is 141
+
+seq_id of this ORF is gi|142022655|gb|EQ086233.1|294
+
+----
+
+For sequence: gi|142022655|gb|EQ086233.1|43,
+
+longest ORF is in reading frame 3 with length = 213
+
+----
+
+First instance of most frequently occuring repeat of size 7 is gccgccg
+
+Repeat gccgccg occurs a total of 56 times in the input FASTA file.
+
+----
+
+Size 11 repeats that occur with the highest frequency occur 3 times.  These sequences are:
+
+gcgcgcgcggc
+
+tgctcgtgctc
+
+gctcgtgctcg
+
+----
+
+The sequence GCGGCCG occurs a total of 56 in the data file
