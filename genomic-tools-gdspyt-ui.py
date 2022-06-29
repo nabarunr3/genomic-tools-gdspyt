@@ -1,27 +1,10 @@
-def file_ORF_compare_lengths(fasta_dict):
- """This function compares the maximum and minimum lengths of all sequences in a file and returns the lengths of the longest and shortest ORF in the file."""
- #initializing the dictionary which will store the ORF lengths of all the sequences 
- file_ORF_len_dict = {}
-
- #building the file_ORF_len_dict dictionary 
- for identifier, sequence in fasta_dict.items():
-  file_ORF_len_dict[identifier] = compare_seq_orfs(sequence)
-
- #now we will go over the entries of the dictionary and get the values of the maximum ORF
- max_len_file = 0
- for identifier, sequence_info in file_ORF_len_dict.items():
-  #the first entry in the tuple returned by compare_seq_ORFs contains the maximum length of the sequence 
-  if sequence_info[0] > max_len_file:
-   max_len_file = sequence_info[0]
-
- #getting the value of the minimum length of the ORF
- min_len_file = max_len_file
- for identifier, sequence_info in file_ORF_len_dict.items():
-  #the third entry in the tuple returned by compare_seq_ORFs contains the minimum length of the sequence 
-  if sequence_info[2] < min_len_file:
-   min_len_file = sequence_info[2]
-
- return (max_len_file, min_len_file)
+from orfs import *
+comparison_tuple = compare_seq_orfs(test_sequence, 2)
+print("Max length:", comparison_tuple[0])
+print("Sequences with max length:", comparison_tuple[1])
+print("Min length:", comparison_tuple[2])
+print("Sequences with min length:", comparison_tuple[3])
+print("All the ORFs with their starting and stop positions and their length:", comparison_tuple[4])
 
 #!/usr/bin/python3
 import sys
@@ -48,10 +31,12 @@ except IOError:
 from parsefasta import *
 fast_dict = multi_FASTA_to_dict(f)
 
+print("* Sequence information of the file:")
 print("\nThere are a total of", len(fast_dict), "sequences in the file.")
 
-print("\nThe following identifiers have been retrieved:")
-print("Identifier \t\t\t Length")
+print("\nThe following identifiers have been retrieved:\n")
+print("Identifier\t\t\t\t Length")
+print("__________\t\t\t\t ______")
 for keys, sequence in fast_dict.items():
     print(keys, "\t", len(sequence))
 
@@ -60,9 +45,17 @@ seq_len_compare(fast_dict)
 
 from orfs import *
 
+print("* ORFs in the file")
 print_orfs_of_file(fast_dict)
 
+print("* Longest and Shortest ORFs in the file.")
 print_longest_shortest_ORFs(fast_dict)
+print("* Longest and Shortest ORFs in individual frames.")
+i = 1
+while (i <= 3):
+    print("** Frame"+str(i))
+    print_longest_shortest_ORFs(fast_dict, i)
+    i = i + 1
 
 from repeats import *
 
@@ -77,7 +70,7 @@ def repeat_times_file(fasta_dict, repeat):
     return frequency
 
 input_repeat_unit = 'CGCGCTCG'
-print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, input_repeat_unit))
+#print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, input_repeat_unit))
 
 def print_max_repeat(fasta_dict, n):
     """This function prints the maximum number of times of occurance of repeat units of lengths n and all such repeat units with occur with the maximum frequency"""
@@ -95,4 +88,4 @@ def print_max_repeat(fasta_dict, n):
 
     return 0
 
-print_max_repeat(fast_dict, 8)
+#print_max_repeat(fast_dict, 8)

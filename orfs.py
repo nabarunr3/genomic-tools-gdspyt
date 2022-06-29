@@ -1,3 +1,5 @@
+test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
+
 def frame_orfs(frame):
     """
     This function extracts all non-overlapping ORFs from a sequence, 
@@ -137,17 +139,23 @@ def frame_extract(sequence):
 
     return(frame_dictionary)
 
-def sequence_orfs(sequence):
-    """This function finds and returns all the ORFs in all frames of a sequence."""
+def sequence_orfs(sequence, fn=0):
+    """This function takes a sequence and finds and returns all the ORFs in a frame of choice. By default though, it will return ORFs in all frames."""
     #initializing the dictionary to store all the frame information of the sequence 
     sequence_orfs_dictionary = {}
 
     #calling the frame_extract() to find all the frames and store it in frames_dictionary variable 
     frames_dictionary = frame_extract(sequence)
 
-    #this loop goes through all the frames in the dictionary, calls the frame_orfs() function for each frame and stores the output in frames_dictionary.    
-    for frame, frame_sequence in frames_dictionary.items():
-        sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence)
+    #this loop goes through all the frames in the dictionary, calls the frame_orfs() function for each frame and stores the output in frames_dictionary.
+    if(fn == 0):
+        for frame, frame_sequence in frames_dictionary.items():
+            sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence)
+    else:
+        frame = "Frame"+str(fn)
+        sequence_orfs_dictionary[frame] = frame_orfs(frames_dictionary[frame])
+
+
 
     #for frame 5, 6, and 7, which are the reverse complement frames, we need to alter the start and stop positions of the frame, so that they are with respect to the forward sequence
 
@@ -165,13 +173,13 @@ def sequence_orfs(sequence):
 
     return sequence_orfs_dictionary
 
-def print_sequence_orfs(sequence):
-    """This function prints the ORF information of a sequence in a presentable format."""
+def print_sequence_orfs(sequence, fn=0):
+    """This function prints the ORF information of a sequence in a particular frame in a presentable format. By default it prints all the frames of the sequence."""
 
-    seq_orf_info = sequence_orfs(sequence)
+    seq_orf_info = sequence_orfs(sequence, fn)
 
     for frame, frame_dict in seq_orf_info.items():
-        print("** _ _ _ _ _ _", frame, "_ _ _ _ _ _")
+        print("*** _ _ _ _ _ _", frame, "_ _ _ _ _ _")
         print("Retrieving", len(frame_dict), "sequences in", frame, "...")
         for orf, orf_dict in frame_dict.items():
             print("***", orf, "\n", orf_dict[0][0], orf_dict[0][1], "...", orf_dict[0][-2], orf_dict[0][-1])
@@ -183,14 +191,14 @@ def print_orfs_of_file(fasta_dict):
     """This function takes as input a dictionary containing all sequences in a file in the format "identifier:sequence" and prints all the ORFs of all reading frames of all sequences of a file."""
 
     for identifier, sequence_orf_info in fasta_dict.items():
-        print("* ++++++", identifier, "++++++")
+        print("** ++++++", identifier, "++++++")
         print_sequence_orfs(sequence_orf_info)
 
-def compare_seq_orfs(sequence):
+def compare_seq_orfs(sequence, fn=0):
     """This function compares all the ORFs in a sequence."""
 
     #getting the ORF information of the sequences 
-    seq_orf_info = sequence_orfs(sequence)
+    seq_orf_info = sequence_orfs(sequence, fn)
 
     #a dictionary to store the lengths of all the ORFs defined in seq_orf_info
     seq_orf_len_dict = {}
@@ -202,32 +210,61 @@ def compare_seq_orfs(sequence):
         for orf, orf_list in frame_dict.items():
             #we subtract the starting and ending positions of the ORFs
             orf_len = abs(orf_list[1] - orf_list[2])
-            #initialize a new dictionary inside of seq_orf_len_dict, corresponding to a key, frame
-            seq_orf_len_dict[frame][orf] = orf_len
+            #initialize a new entry inside of seq_orf_len_dict, corresponding to a key, frame, which stores the starting and ending position of the ORF and the orf length. 
+            seq_orf_len_dict[frame][orf] = [orf_list[1], orf_list[2], orf_len]
             if orf_len >= max_len:
                 max_len = orf_len
 
     #now we find the minimum length 
     min_len = max_len 
     for frame, frame_dict in seq_orf_len_dict.items():
-        for orf, orf_len in frame_dict.items():
-            if orf_len <= min_len:
+        for orf, orf_len_info in frame_dict.items():
+            #remember length is stored in the 3rd position of the orf_len_info list 
+            if orf_len_info[2] <= min_len:
                 min_len = orf_len
 
 
-    #since there can be more than one sequences with the maximum or minimum lengths, we initialize a dictionary which will store all frames and ORFs corresponting to the maximum and minimum lengths 
+    #since there can be more than one sequences with the maximum or minimum lengths, we initialize a dictionary which will store all frames and ORFs corresponting to the maximum and minimum lengths, along with the starting and ending positions of the ORF
     max_len_dict = {}
     min_len_dict = {}
     for frame, frame_dict in seq_orf_len_dict.items():
-        for orf, orf_len in frame_dict.items():
-            if orf_len == max_len:
+        for orf, orf_len_info in frame_dict.items():
+            if orf_len_info[2] == max_len:
                 max_len_dict[frame] = {}
                 max_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
-            elif orf_len == min_len:
+            elif orf_len_info[2] == min_len:
                 min_len_dict[frame] = {}
                 min_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
 
     return (max_len, max_len_dict, min_len, min_len_dict, seq_orf_len_dict)
+
+def file_ORF_compare_lengths(fasta_dict, fn=0):
+ """This function compares the maximum and minimum lengths of all ORFs in all sequences in a file and returns the lengths of the longest and shortest ORF in the file."""
+ #initializing the dictionary which will store the ORF lengths information from calling compare_seq_orfs() for all the sequences 
+ file_ORF_len_dict = {}
+
+ #building the file_ORF_len_dict dictionary
+ #for the frame information of the
+
+ for identifier, sequence in fasta_dict.items():
+  file_ORF_len_dict[identifier] = compare_seq_orfs(sequence, fn)
+
+ #now we will go over the entries of the dictionary and get the values of the maximum ORF
+ max_len_file = 0
+ for identifier, sequence_info in file_ORF_len_dict.items():
+  #the first entry in the tuple returned by compare_seq_ORFs contains the maximum length of the sequence 
+  if sequence_info[0] > max_len_file:
+   max_len_file = sequence_info[0]
+
+ #getting the value of the minimum length of the ORF
+ min_len_file = max_len_file
+ for identifier, sequence_info in file_ORF_len_dict.items():
+  #the third entry in the tuple returned by compare_seq_ORFs contains the minimum length of the sequence 
+  if sequence_info[2] < min_len_file:
+   min_len_file = sequence_info[2]
+
+ print(max_len_file, min_len_file)
+ return (max_len_file, min_len_file)
 
 def get_all_ORFs_of_length(fasta_dict, x):
     """This function gets all ORFs of length x from a file whose sequence information has been stored in fasta_dict"""
@@ -243,33 +280,46 @@ def get_all_ORFs_of_length(fasta_dict, x):
     dict_file_orfs_length_x = []
     for identifier, identifier_info in file_ORF_lengths_dict.items():
         for frame, frame_ORF_info in identifier_info.items():
-            for ORF, length in frame_ORF_info.items():
-                if length == x:
-                    ORF_coordinates = (identifier, frame, ORF)
+            for ORF, orf_info in frame_ORF_info.items():
+                if orf_info[2] == x:
+                    #remember, orf_info = [start, stop, length]
+                    ORF_coordinates = (identifier, frame, ORF, orf_info[0], orf_info[1], orf_info[2])
                     dict_file_orfs_length_x.append(ORF_coordinates)
-
 
     return dict_file_orfs_length_x
 
-def print_longest_shortest_ORFs(fasta_dict):
-    """This function prints all the longest and shortest ORFs, considering all the frames of all sequences in a file """
+def print_longest_shortest_ORFs(fasta_dict, fn=0):
+    """This function prints all the longest and shortest ORFs, considering all the frames of all sequences in a file, by default. However, if a frame number is entered, it can print out the longest ORFs in that particular frame."""
 
     #first we call the file_ORF_compare_lengths() to store the maximum and minimum ORF lengths of the file in a tuple returned by the function 
-    max_min_tuple = file_ORF_compare_lengths(fasta_dict)
-    #then we store the all the ORFs having the maximum and minimum lengths
+    max_min_tuple = file_ORF_compare_lengths(fasta_dict, fn)
+    #then we store the all the ORFs having the maximum and minimum lengths. We get a list containing nested lists of the form:
+    #[identifier, frame, ORF, start, stop, length]
     max_ORF_list = get_all_ORFs_of_length(fasta_dict, max_min_tuple[0])
     min_ORF_list = get_all_ORFs_of_length(fasta_dict, max_min_tuple[1])
 
-    #Finally to print them out in a nicely formatted way 
-    print("\n\nThe ORF(s) with the maximum lengths of", max_min_tuple[0], "are:")
-    print("\nIdentifier \t\t\t Frame \t\t ORF")
-    print("__________ \t\t\t _____ \t\t ___")
+    #Finally to print them out in a nicely formatted way
+    frame_name = "Frame"+str(fn)
+    if(fn == 0):
+        print("\n\nThe ORF(s) with the maximum lengths of", max_min_tuple[0], "are:")
+    else:
+        print("\n\nThe ORF(s) with the maximum lengths of", max_min_tuple[0], "in", frame_name, "are:")
+
+    print("__________ \t\t\t _____ \t___ \t _____ \t ____ \t ______")
+    print("\nIdentifier \t\t\t Frame \tORF \t Start \t Stop \t Length")
+    print("__________ \t\t\t _____ \t___ \t _____ \t ____ \t ______")
     for i in range(len(max_ORF_list)):
-        print(max_ORF_list[i][0], "\t", max_ORF_list[i][1], "\t", max_ORF_list[i][2])
-    print("\n\nThe ORF(s) with the minimum lengths of", max_min_tuple[1], "are:")
-    print("\nIdentifier \t\t\t Frame \t\t ORF")
-    print("__________ \t\t\t _____ \t\t ___")
+        print(max_ORF_list[i][0], max_ORF_list[i][1], max_ORF_list[i][2], "\t", max_ORF_list[i][3], "\t", max_ORF_list[i][4], "\t", max_ORF_list[i][5])
+
+    if(fn == 0):
+        print("\n\nThe ORF(s) with the minimum lengths of", max_min_tuple[1], "are:")
+    else:
+        print("\n\nThe ORF(s) with the minimum lengths of", max_min_tuple[1], "in", frame_name, "are:")
+
+    print("__________ \t\t\t _____ \t___ \t _____ \t ____ \t ______")
+    print("\nIdentifier \t\t\t Frame \tORF \t Start \t Stop \t Length")
+    print("__________ \t\t\t _____ \t___ \t _____ \t ____ \t ______")
     for i in range(len(min_ORF_list)):
-        print(min_ORF_list[i][0], "\t", min_ORF_list[i][1], "\t", min_ORF_list[i][2])
+        print(min_ORF_list[i][0], min_ORF_list[i][1], min_ORF_list[i][2], "\t", min_ORF_list[i][3], "\t", min_ORF_list[i][4], "\t", min_ORF_list[i][5])
 
     return 0

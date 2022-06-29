@@ -4,7 +4,8 @@
 
 ** TODO Create the UI 
 
-** TODO Include start and end positions in the =print_longest_shortest_ORFs= output
+** DONE Include start and end positions in the =print_longest_shortest_ORFs= output
+CLOSED: [2022-06-29 Wed 20:26]
 
 ** TODO Implement Longest ORF in a given frame 
 
@@ -36,8 +37,9 @@ CLOSED: [2022-06-27 Mon 12:34]
   - [[#finding-all-orfs-in-a-sequence][Finding all ORFs in a sequence]]
   - [[#printing-all-orfs-in-a-sequence][Printing all ORFs in a sequence]]
   - [[#print-all-orfs-in-the-file][Print all ORFs in the file]]
-  - [[#comparing-and-printing-the-longest-orfs-of-a-sequence][Comparing and printing the longest ORFs of a sequence]]
+  - [[#comparing-and-printing-the-longest-and-shortest-orfs-of-a-sequence][Comparing and printing the longest and shortest ORFs of a sequence]]
   - [[#printing-the-longest-and-shortest-orfs-among-all-sequences-in-a-file][Printing the longest and shortest ORFs among all sequences in a file]]
+  - [[#printing-the-longest-and-shortest-orf-in-the-file-corresponding-to-a-particular-frame-number-fno][Printing the longest and shortest ORF in the file corresponding to a particular frame number 'fno']]
 - [[#mapping-repeats-in-the-file][Mapping Repeats in the File]]
   - [[#question-2][Question]]
   - [[#our-approach][Our Approach]]
@@ -53,7 +55,7 @@ CLOSED: [2022-06-27 Mon 12:34]
 
 * Reading and comparing sequences in a Given FASTA file
 ** Example sequence
-#+begin_src python :session gdspyt :tangle no 
+#+begin_src python :session gdspyt :tangle ./orfs.py
 test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
 #+end_src
 
@@ -781,17 +783,23 @@ To find all the ORFs in a sequence, we simply pass a sequence to a function whic
 
 *** The =sequence_orfs()= function 
 #+begin_src python :session gdspyt :tangle ./orfs.py 
-  def sequence_orfs(sequence):
-      """This function finds and returns all the ORFs in all frames of a sequence."""
+  def sequence_orfs(sequence, fn=0):
+      """This function takes a sequence and finds and returns all the ORFs in a frame of choice. By default though, it will return ORFs in all frames."""
       #initializing the dictionary to store all the frame information of the sequence 
       sequence_orfs_dictionary = {}
 
       #calling the frame_extract() to find all the frames and store it in frames_dictionary variable 
       frames_dictionary = frame_extract(sequence)
 
-      #this loop goes through all the frames in the dictionary, calls the frame_orfs() function for each frame and stores the output in frames_dictionary.    
-      for frame, frame_sequence in frames_dictionary.items():
-          sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence)
+      #this loop goes through all the frames in the dictionary, calls the frame_orfs() function for each frame and stores the output in frames_dictionary.
+      if(fn == 0):
+          for frame, frame_sequence in frames_dictionary.items():
+              sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence)
+      else:
+          frame = "Frame"+str(fn)
+          sequence_orfs_dictionary[frame] = frame_orfs(frames_dictionary[frame])
+
+
 
       #for frame 5, 6, and 7, which are the reverse complement frames, we need to alter the start and stop positions of the frame, so that they are with respect to the forward sequence
 
@@ -812,19 +820,24 @@ To find all the ORFs in a sequence, we simply pass a sequence to a function whic
 
 *** Testing the =sequence_orfs()= function
 #+begin_src python :session gdspyt :tangle no
-  print(sequence_orfs(test_sequence))
+  fn = 0
+  if(fn == 0):
+      print("The ORFs in all the frames are:")
+  else:
+      print("Frame", fn, "contains the following ORFs:")
+  print(sequence_orfs(test_sequence, fn))
 #+end_src
 ** Printing all ORFs in a sequence 
 Now we take the have to print the output from the =sequence_orfs()= function
 ***  Function =print_sequence_orfs()= 
 #+begin_src python :session gdspyt :tangle ./orfs.py
-  def print_sequence_orfs(sequence):
-      """This function prints the ORF information of a sequence in a presentable format."""
+  def print_sequence_orfs(sequence, fn=0):
+      """This function prints the ORF information of a sequence in a particular frame in a presentable format. By default it prints all the frames of the sequence."""
 
-      seq_orf_info = sequence_orfs(sequence)
+      seq_orf_info = sequence_orfs(sequence, fn)
 
       for frame, frame_dict in seq_orf_info.items():
-          print("** _ _ _ _ _ _", frame, "_ _ _ _ _ _")
+          print("*** _ _ _ _ _ _", frame, "_ _ _ _ _ _")
           print("Retrieving", len(frame_dict), "sequences in", frame, "...")
           for orf, orf_dict in frame_dict.items():
               print("***", orf, "\n", orf_dict[0][0], orf_dict[0][1], "...", orf_dict[0][-2], orf_dict[0][-1])
@@ -843,25 +856,25 @@ Now we take the have to print the output from the =sequence_orfs()= function
       """This function takes as input a dictionary containing all sequences in a file in the format "identifier:sequence" and prints all the ORFs of all reading frames of all sequences of a file."""
 
       for identifier, sequence_orf_info in fasta_dict.items():
-          print("* ++++++", identifier, "++++++")
+          print("** ++++++", identifier, "++++++")
           print_sequence_orfs(sequence_orf_info)
 #+end_src
-** Comparing and printing the longest ORFs of a sequence 
+** Comparing and printing the longest and shortest ORFs of a sequence 
 Now we compare all the ORFs in a given sequence and print them. The function will obtain the sequence dictionary from the =sequence_orfs()= function and return the following information.
 
 #+begin_src python
   longest_orf_length
   longest_orf_dictionary = {frame_no: {orfn1:[start_pos, end_pos], orfn2:[start_pos, end_pos],...}}
   shortest_orf_length 
-  shortest_orf_dictionary = {frame_no_orf_no:[start_pos, end_pos], frame_no_orf_no:[start_pos, end_pos],...}
+  shortest_orf_dictionary = {frame_no: {orfn1:[start_pos, end_pos], orfn2:[start_pos, end_pos],...}}
 #+end_src
 *** The =compare_seq_orfs()= function 
 #+begin_src python :session gdspyt :tangle ./orfs.py 
-  def compare_seq_orfs(sequence):
+  def compare_seq_orfs(sequence, fn=0):
       """This function compares all the ORFs in a sequence."""
 
       #getting the ORF information of the sequences 
-      seq_orf_info = sequence_orfs(sequence)
+      seq_orf_info = sequence_orfs(sequence, fn)
 
       #a dictionary to store the lengths of all the ORFs defined in seq_orf_info
       seq_orf_len_dict = {}
@@ -873,38 +886,43 @@ Now we compare all the ORFs in a given sequence and print them. The function wil
           for orf, orf_list in frame_dict.items():
               #we subtract the starting and ending positions of the ORFs
               orf_len = abs(orf_list[1] - orf_list[2])
-              #initialize a new dictionary inside of seq_orf_len_dict, corresponding to a key, frame
-              seq_orf_len_dict[frame][orf] = orf_len
+              #initialize a new entry inside of seq_orf_len_dict, corresponding to a key, frame, which stores the starting and ending position of the ORF and the orf length. 
+              seq_orf_len_dict[frame][orf] = [orf_list[1], orf_list[2], orf_len]
               if orf_len >= max_len:
                   max_len = orf_len
 
       #now we find the minimum length 
       min_len = max_len 
       for frame, frame_dict in seq_orf_len_dict.items():
-          for orf, orf_len in frame_dict.items():
-              if orf_len <= min_len:
+          for orf, orf_len_info in frame_dict.items():
+              #remember length is stored in the 3rd position of the orf_len_info list 
+              if orf_len_info[2] <= min_len:
                   min_len = orf_len
 
 
-      #since there can be more than one sequences with the maximum or minimum lengths, we initialize a dictionary which will store all frames and ORFs corresponting to the maximum and minimum lengths 
+      #since there can be more than one sequences with the maximum or minimum lengths, we initialize a dictionary which will store all frames and ORFs corresponting to the maximum and minimum lengths, along with the starting and ending positions of the ORF
       max_len_dict = {}
       min_len_dict = {}
       for frame, frame_dict in seq_orf_len_dict.items():
-          for orf, orf_len in frame_dict.items():
-              if orf_len == max_len:
+          for orf, orf_len_info in frame_dict.items():
+              if orf_len_info[2] == max_len:
                   max_len_dict[frame] = {}
                   max_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
-              elif orf_len == min_len:
+              elif orf_len_info[2] == min_len:
                   min_len_dict[frame] = {}
                   min_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
 
       return (max_len, max_len_dict, min_len, min_len_dict, seq_orf_len_dict)
 #+end_src
 *** Testing =compare_seq_orfs()= function
-
-#+begin_src python :session gdspyt :tangle no 
-  comparison_tuple = compare_seq_orfs(test_sequence)
-  print(comparison_tuple)
+#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
+  from orfs import *
+  comparison_tuple = compare_seq_orfs(test_sequence, 2)
+  print("Max length:", comparison_tuple[0])
+  print("Sequences with max length:", comparison_tuple[1])
+  print("Min length:", comparison_tuple[2])
+  print("Sequences with min length:", comparison_tuple[3])
+  print("All the ORFs with their starting and stop positions and their length:", comparison_tuple[4])
 #+end_src
 ** Printing the longest and shortest ORFs among all sequences in a file
 *** Procedure 
@@ -984,15 +1002,17 @@ Till now we can compare all the ORFs in a particular sequence with the =compare_
 
 *** Getting the max and min lengths of an ORF
 **** The =file_ORF_compare_lengths()= function
-#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py  
-  def file_ORF_compare_lengths(fasta_dict):
-   """This function compares the maximum and minimum lengths of all sequences in a file and returns the lengths of the longest and shortest ORF in the file."""
-   #initializing the dictionary which will store the ORF lengths of all the sequences 
+#+begin_src python :session gdspyt :tangle ./orfs.py
+  def file_ORF_compare_lengths(fasta_dict, fn=0):
+   """This function compares the maximum and minimum lengths of all ORFs in all sequences in a file and returns the lengths of the longest and shortest ORF in the file."""
+   #initializing the dictionary which will store the ORF lengths information from calling compare_seq_orfs() for all the sequences 
    file_ORF_len_dict = {}
 
-   #building the file_ORF_len_dict dictionary 
+   #building the file_ORF_len_dict dictionary
+   #for the frame information of the
+
    for identifier, sequence in fasta_dict.items():
-    file_ORF_len_dict[identifier] = compare_seq_orfs(sequence)
+    file_ORF_len_dict[identifier] = compare_seq_orfs(sequence, fn)
 
    #now we will go over the entries of the dictionary and get the values of the maximum ORF
    max_len_file = 0
@@ -1008,6 +1028,7 @@ Till now we can compare all the ORFs in a particular sequence with the =compare_
     if sequence_info[2] < min_len_file:
      min_len_file = sequence_info[2]
 
+   print(max_len_file, min_len_file)
    return (max_len_file, min_len_file) 
 #+end_src
 
@@ -1035,46 +1056,62 @@ This will allow is to get all ORFs in the file corresponding to a given length
       dict_file_orfs_length_x = []
       for identifier, identifier_info in file_ORF_lengths_dict.items():
           for frame, frame_ORF_info in identifier_info.items():
-              for ORF, length in frame_ORF_info.items():
-                  if length == x:
-                      ORF_coordinates = (identifier, frame, ORF)
+              for ORF, orf_info in frame_ORF_info.items():
+                  if orf_info[2] == x:
+                      #remember, orf_info = [start, stop, length]
+                      ORF_coordinates = (identifier, frame, ORF, orf_info[0], orf_info[1], orf_info[2])
                       dict_file_orfs_length_x.append(ORF_coordinates)
-                
-                
+
       return dict_file_orfs_length_x
 #+end_src
 
 **** Test =get_all_ORFs_of_length()= function
 #+begin_src python :session gdspyt :tangle no
-print(get_all_ORFs_of_length(fast_dict, 5))
+  #1686nts happens to be the longest ORF in the file 
+  print(get_all_ORFs_of_length(fast_dict, 1686))
 #+end_src
+
 *** Printing all the longest and shortest ORFs in a file
 **** the =print_longest_shortest_ORFs(fasta_dict)= function
 #+begin_src python :session gdspyt :tangle ./orfs.py
-  def print_longest_shortest_ORFs(fasta_dict):
-      """This function prints all the longest and shortest ORFs, considering all the frames of all sequences in a file """
+  def print_longest_shortest_ORFs(fasta_dict, fn=0):
+      """This function prints all the longest and shortest ORFs, considering all the frames of all sequences in a file, by default. However, if a frame number is entered, it can print out the longest ORFs in that particular frame."""
 
       #first we call the file_ORF_compare_lengths() to store the maximum and minimum ORF lengths of the file in a tuple returned by the function 
-      max_min_tuple = file_ORF_compare_lengths(fasta_dict)
-      #then we store the all the ORFs having the maximum and minimum lengths
+      max_min_tuple = file_ORF_compare_lengths(fasta_dict, fn)
+      #then we store the all the ORFs having the maximum and minimum lengths. We get a list containing nested lists of the form:
+      #[identifier, frame, ORF, start, stop, length]
       max_ORF_list = get_all_ORFs_of_length(fasta_dict, max_min_tuple[0])
       min_ORF_list = get_all_ORFs_of_length(fasta_dict, max_min_tuple[1])
 
-      #Finally to print them out in a nicely formatted way 
-      print("\n\nThe ORF(s) with the maximum lengths of", max_min_tuple[0], "are:")
-      print("\nIdentifier \t\t\t Frame \t\t ORF")
-      print("__________ \t\t\t _____ \t\t ___")
+      #Finally to print them out in a nicely formatted way
+      frame_name = "Frame"+str(fn)
+      if(fn == 0):
+          print("\n\nThe ORF(s) with the maximum lengths of", max_min_tuple[0], "are:")
+      else:
+          print("\n\nThe ORF(s) with the maximum lengths of", max_min_tuple[0], "in", frame_name, "are:")
+        
+      print("__________ \t\t\t _____ \t___ \t _____ \t ____ \t ______")
+      print("\nIdentifier \t\t\t Frame \tORF \t Start \t Stop \t Length")
+      print("__________ \t\t\t _____ \t___ \t _____ \t ____ \t ______")
       for i in range(len(max_ORF_list)):
-          print(max_ORF_list[i][0], "\t", max_ORF_list[i][1], "\t", max_ORF_list[i][2])
-      print("\n\nThe ORF(s) with the minimum lengths of", max_min_tuple[1], "are:")
-      print("\nIdentifier \t\t\t Frame \t\t ORF")
-      print("__________ \t\t\t _____ \t\t ___")
+          print(max_ORF_list[i][0], max_ORF_list[i][1], max_ORF_list[i][2], "\t", max_ORF_list[i][3], "\t", max_ORF_list[i][4], "\t", max_ORF_list[i][5])
+        
+      if(fn == 0):
+          print("\n\nThe ORF(s) with the minimum lengths of", max_min_tuple[1], "are:")
+      else:
+          print("\n\nThe ORF(s) with the minimum lengths of", max_min_tuple[1], "in", frame_name, "are:")
+
+      print("__________ \t\t\t _____ \t___ \t _____ \t ____ \t ______")
+      print("\nIdentifier \t\t\t Frame \tORF \t Start \t Stop \t Length")
+      print("__________ \t\t\t _____ \t___ \t _____ \t ____ \t ______")
       for i in range(len(min_ORF_list)):
-          print(min_ORF_list[i][0], "\t", min_ORF_list[i][1], "\t", min_ORF_list[i][2])
+          print(min_ORF_list[i][0], min_ORF_list[i][1], min_ORF_list[i][2], "\t", min_ORF_list[i][3], "\t", min_ORF_list[i][4], "\t", min_ORF_list[i][5])
 
       return 0 
 #+end_src
-
+** Printing the longest and shortest ORF in the file corresponding to a particular frame number 'fno'
+- for this we call the function to get the length information of all the sequences in the file 
 * Mapping Repeats in the File
 
 ** Question
@@ -1303,7 +1340,7 @@ getopt module (inbuilt)
       sys.exit()
 
 #+end_src
-** TODO Broad file operations
+** Broad file operations
 *** Importing the parsefasta module and reading the file into a dictionary
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py  
   from parsefasta import *
@@ -1311,33 +1348,44 @@ getopt module (inbuilt)
 #+end_src
 *** Printing the number of sequences of the file 
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py  
+  print("* Sequence information of the file:")
   print("\nThere are a total of", len(fast_dict), "sequences in the file.")
 #+end_src
-*** TODO Printing the identifiers of the sequences with their lengths, in a table  
+*** Printing the identifiers of the sequences with their lengths, in a table  
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py  
-  print("\nThe following identifiers have been retrieved:")
-  print("Identifier \t\t\t Length")
+  print("\nThe following identifiers have been retrieved:\n")
+  print("Identifier\t\t\t\t Length")
+  print("__________\t\t\t\t ______")
   for keys, sequence in fast_dict.items():
       print(keys, "\t", len(sequence))
 #+end_src
-*** TODO Printing the longest and shortest sequence of the file
+*** Printing the longest and shortest sequence of the file
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py  
   from seqlen_compare import *
   seq_len_compare(fast_dict)
 #+end_src
 ** Open Reading frames operations 
+*** Importing the =orfs= module 
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py
   from orfs import *
 #+end_src 
 
 *** Printing all  ORFs in a file 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
+print("* ORFs in the file")
 print_orfs_of_file(fast_dict)
 #+end_src
 
 *** Printing length of  longest ORF(s), those ORFs  and the identifiers containing them. 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
-print_longest_shortest_ORFs(fast_dict)
+  print("* Longest and Shortest ORFs in the file.")
+  print_longest_shortest_ORFs(fast_dict)
+  print("* Longest and Shortest ORFs in individual frames.")
+  i = 1
+  while (i <= 3):
+      print("** Frame"+str(i))
+      print_longest_shortest_ORFs(fast_dict, i)
+      i = i + 1 
 #+end_src
 
 *** TODO For a given identifier in the file, what is the longest ORF for that identifier 
@@ -1366,7 +1414,7 @@ repeats module
 We will gradually replace the =input_repeat_unit= variable's value with a user input.  
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
 input_repeat_unit = 'CGCGCTCG'
-print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, input_repeat_unit))
+#print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, input_repeat_unit))
 #+end_src
 
 
@@ -1391,5 +1439,6 @@ print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, 
 #+end_src
 **** Printing the repeat units 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py 
-print_max_repeat(fast_dict, 8)
+#print_max_repeat(fast_dict, 8)
 #+end_src
+
