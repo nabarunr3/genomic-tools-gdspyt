@@ -1,30 +1,6 @@
 #+title:A set of sequence manipulation code
 
-* Roadmap
-
-** TODO Create the UI 
-
-** DONE Include start and end positions in the =print_longest_shortest_ORFs= output
-CLOSED: [2022-06-29 Wed 20:26]
-
-** TODO Implement Longest ORF in a given frame 
-
-** TODO Implement longest ORF in a given identifierxs
-** DONE Fix the ORF question to find ORFs as described in  [[file:new_information.org][new_information.org]].
-CLOSED: [2022-06-29 Wed 10:12]
-** DONE Test and debug repeats 
-CLOSED: [2022-06-29 Wed 00:55]
-** DONE Find repeats 
-CLOSED: [2022-06-27 Mon 12:34]
 * Table of Contents                                                 :toc@2:
-- [[#roadmap][Roadmap]]
-  - [[#create-the-ui][Create the UI]]
-  - [[#include-start-and-end-positions-in-the-print_longest_shortest_orfs-output][Include start and end positions in the =print_longest_shortest_ORFs= output]]
-  - [[#implement-longest-orf-in-a-given-frame][Implement Longest ORF in a given frame]]
-  - [[#implement-longest-orf-in-a-given-identifierxs][Implement longest ORF in a given identifierxs]]
-  - [[#fix-the-orf-question-to-find-orfs-as-described-in--new_informationorg][Fix the ORF question to find ORFs as described in  new_information.org.]]
-  - [[#test-and-debug-repeats][Test and debug repeats]]
-  - [[#find-repeats][Find repeats]]
 - [[#reading-and-comparing-sequences-in-a-given-fasta-file][Reading and comparing sequences in a Given FASTA file]]
   - [[#example-sequence][Example sequence]]
   - [[#question][Question]]
@@ -1459,7 +1435,7 @@ print_orfs_of_file(fast_dict)
 *** For a given identifier in the file, what is the longest ORF for that identifier 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
   print("* Identifier ORFs")
-  identifier = "gi|142022655|gb|EQ086233.1|43"
+  identifier = "gi|142022655|gb|EQ086233.1|16"
   tester = fast_dict[identifier]
   print("The identifier", identifier, "has ORFs with the following:\n")
   print_seq_orf_info(tester)
@@ -1479,7 +1455,7 @@ print("\nThe repeat", input_repeat_unit, "occurs with a frequency of", repeat_ti
 
 *** Printing repeat units of length 'n' with maximum frequency in the file 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py 
-print_max_repeat_n(fast_dict, 11)
+print_max_repeat_n(fast_dict, 7)
 #+end_src
 
 

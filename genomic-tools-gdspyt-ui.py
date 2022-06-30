@@ -51,7 +51,7 @@ while (i <= 3):
     i = i + 1
 
 print("* Identifier ORFs")
-identifier = "gi|142022655|gb|EQ086233.1|43"
+identifier = "gi|142022655|gb|EQ086233.1|16"
 tester = fast_dict[identifier]
 print("The identifier", identifier, "has ORFs with the following:\n")
 print_seq_orf_info(tester)
@@ -62,4 +62,4 @@ input_repeat_unit = 'GCCGCCG'
 print("* Repeat Information")
 print("\nThe repeat", input_repeat_unit, "occurs with a frequency of", repeat_times_file(fast_dict, input_repeat_unit))
 
-print_max_repeat_n(fast_dict, 11)
+print_max_repeat_n(fast_dict, 7)
