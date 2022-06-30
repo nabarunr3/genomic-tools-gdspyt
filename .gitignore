@@ -1,5 +1,6 @@
 #ignore all temporary files 
 temp*
 *~
-
+#ignore the pycache
+./__pycache__/
 
