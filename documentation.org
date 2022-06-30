@@ -43,10 +43,12 @@ CLOSED: [2022-06-27 Mon 12:34]
 - [[#mapping-repeats-in-the-file][Mapping Repeats in the File]]
   - [[#question-2][Question]]
   - [[#our-approach][Our Approach]]
-  - [[#getting-frequency-of-a-given-repeat][Getting frequency of a given repeat]]
+  - [[#getting-frequency-of-a-given-repeat-in-a-sequence][Getting frequency of a given repeat in a sequence]]
   - [[#getting-the-frequency-of-all-repeat-units-of-length-n-in-a-sequence][Getting the frequency of all repeat units of length n in a sequence]]
+  - [[#printing-the-frequency-of-a-given-repeat-in-a-file][Printing the frequency of a given repeat in a file]]
   - [[#getting-the-repeat-information-of-all-unique-repeats-for-all-sequences-of-a-file][Getting the repeat information of all unique repeats for all sequences of a file]]
   - [[#finding-the-most-frequent-repeat-units-of-length-n-in-a-file][Finding the most frequent repeat unit(s) of length 'n' in a file]]
+  - [[#printing-repeat-units-of-length-n-with-maximum-frequency-in-the-file][Printing repeat units of length 'n' with maximum frequency in the file]]
 - [[#creating-the-ui][Creating the UI]]
   - [[#taking-the-input-and-generating-the-options][Taking the input and generating the options]]
   - [[#broad-file-operations][Broad file operations]]
@@ -469,11 +471,14 @@ This was needed because the previous function considers all ORFs, even for the s
 
 This new function ignores all start codons between a previously discovered start codon and a stop codon. 
 #+begin_src python :session gdspyt :tangle ./orfs.py
-  def frame_orfs(frame):
+  def frame_orfs(frame, fn=1):
       """
       This function extracts all non-overlapping ORFs from a sequence, 
       that is, ignoring start codons that fall between 
-      a previous start codon and stop codon.
+      a previous start codon and stop codon. 
+      By default it returns start and end positions considering 
+      the first frame of reference. However, if 2 or 3 is input, 
+      it will calculate the frames accordingly. 
 
       """
 
@@ -533,10 +538,10 @@ This new function ignores all start codons between a previously discovered start
                           codon = trimmed_frame[j:j+3]
                           orf_dict[orf_name][0].append(codon)
                           j = j + 3
-                      #next we store the start and stop positions in the second and third positions of the orf_name list, respectively 
-                      orf_dict[orf_name].append(start_position)
+                      #next we store the start and stop positions in the second and third positions of the orf_name list, respectively. fn is added the start/stop  position so that from the perspective of the sequence it considers the start position from index 1. If fn=2 or 3, then we assume the 2nd or 3rd frame of any sequence has been input and we adjust the start and stop positions accordingly
+                      orf_dict[orf_name].append(start_position + fn)
                       #we add 3 to the stop position to consider the 3rd nucleotide of the stop codon as the stop position
-                      orf_dict[orf_name].append((stop_position + 3)) 
+                      orf_dict[orf_name].append((stop_position + fn + 3)) 
 
                       #we now break out of the stop codon searching loop 
                       break
@@ -793,12 +798,17 @@ To find all the ORFs in a sequence, we simply pass a sequence to a function whic
 
       #this loop goes through all the frames in the dictionary, calls the frame_orfs() function for each frame and stores the output in frames_dictionary.
       if(fn == 0):
+          fn = 1
           for frame, frame_sequence in frames_dictionary.items():
-              sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence)
+              #if Frame4 is reached, we restart from fn=1. This will again increment to 2 and 3 when frames 5 and 6 are reached, respectively. 
+              if(fn == 4):
+                  fn = 1 
+              sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence, fn)
+              fn = fn + 1 
+      #the else case is when a frame number has been entered. Start and stop positions are adjusted accordingly in frame_orfs()
       else:
           frame = "Frame"+str(fn)
-          sequence_orfs_dictionary[frame] = frame_orfs(frames_dictionary[frame])
-
+          sequence_orfs_dictionary[frame] = frame_orfs(frames_dictionary[frame], fn)
 
 
       #for frame 5, 6, and 7, which are the reverse complement frames, we need to alter the start and stop positions of the frame, so that they are with respect to the forward sequence
@@ -896,7 +906,8 @@ Now we compare all the ORFs in a given sequence and print them. The function wil
       for frame, frame_dict in seq_orf_len_dict.items():
           for orf, orf_len_info in frame_dict.items():
               #remember length is stored in the 3rd position of the orf_len_info list 
-              if orf_len_info[2] <= min_len:
+              orf_len = orf_len_info[2]
+              if orf_len <= min_len:
                   min_len = orf_len
 
 
@@ -908,21 +919,36 @@ Now we compare all the ORFs in a given sequence and print them. The function wil
               if orf_len_info[2] == max_len:
                   max_len_dict[frame] = {}
                   max_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
-              elif orf_len_info[2] == min_len:
+              if orf_len_info[2] == min_len:
                   min_len_dict[frame] = {}
                   min_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
 
       return (max_len, max_len_dict, min_len, min_len_dict, seq_orf_len_dict)
 #+end_src
 *** Testing =compare_seq_orfs()= function
-#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
-  from orfs import *
-  comparison_tuple = compare_seq_orfs(test_sequence, 2)
-  print("Max length:", comparison_tuple[0])
-  print("Sequences with max length:", comparison_tuple[1])
-  print("Min length:", comparison_tuple[2])
-  print("Sequences with min length:", comparison_tuple[3])
-  print("All the ORFs with their starting and stop positions and their length:", comparison_tuple[4])
+#+begin_src python :session gdspyt :tangle ./orfs.py
+  def print_seq_orf_info(sequence, fn=0):
+      """
+      This function prints in a presentable manner, 
+      the sequence information of any sequence enterd,
+      by calling the compare_seq_orfs().
+
+      """
+      comparison_tuple = compare_seq_orfs(sequence)
+      print("Max length:", comparison_tuple[0])
+      print("\n\nORFs with max length:")
+      print("\nFrame \t ORF \t Start \t Stop")
+      for frame, frame_info in comparison_tuple[1].items():
+          for orf, orf_info in frame_info.items():
+              print(frame, "\t", orf, "\t", orf_info[0], "\t", orf_info[1])
+      print("\nMin length:", comparison_tuple[2])
+      print("\n\nORFs with min length:")
+      print("\nFrame \t ORF \t Start \t Stop")
+      for frame, frame_info in comparison_tuple[1].items():
+          for orf, orf_info in frame_info.items():
+              print(frame, "\t", orf, "\t", orf_info[0], "\t", orf_info[1])
+
+      return 0
 #+end_src
 ** Printing the longest and shortest ORFs among all sequences in a file
 *** Procedure 
@@ -1008,27 +1034,32 @@ Till now we can compare all the ORFs in a particular sequence with the =compare_
    #initializing the dictionary which will store the ORF lengths information from calling compare_seq_orfs() for all the sequences 
    file_ORF_len_dict = {}
 
-   #building the file_ORF_len_dict dictionary
-   #for the frame information of the
+   #building the file_ORF_len_dict for all sequences in fasta_dict 
 
    for identifier, sequence in fasta_dict.items():
     file_ORF_len_dict[identifier] = compare_seq_orfs(sequence, fn)
+    # print(file_ORF_len_dict[identifier]) #for testing 
 
    #now we will go over the entries of the dictionary and get the values of the maximum ORF
    max_len_file = 0
    for identifier, sequence_info in file_ORF_len_dict.items():
     #the first entry in the tuple returned by compare_seq_ORFs contains the maximum length of the sequence 
-    if sequence_info[0] > max_len_file:
-     max_len_file = sequence_info[0]
+    orf_len = sequence_info[0]
+    if orf_len > max_len_file:
+     max_len_file = orf_len
 
    #getting the value of the minimum length of the ORF
    min_len_file = max_len_file
    for identifier, sequence_info in file_ORF_len_dict.items():
     #the third entry in the tuple returned by compare_seq_ORFs contains the minimum length of the sequence 
-    if sequence_info[2] < min_len_file:
-     min_len_file = sequence_info[2]
+    orf_len = sequence_info[2]
+    # print("Orf_len:", orf_len) #to test 
+    #because certain frames might contain no ORF at all, we have to exclude from consideration a minimum length of 0. 
+    if ((orf_len <= min_len_file) & (orf_len!=0)):
+     min_len_file = orf_len
+     # print("Changed min len:", min_len_file) #to test
 
-   print(max_len_file, min_len_file)
+   # print(max_len_file, min_len_file)
    return (max_len_file, min_len_file) 
 #+end_src
 
@@ -1111,7 +1142,7 @@ This will allow is to get all ORFs in the file corresponding to a given length
       return 0 
 #+end_src
 ** Printing the longest and shortest ORF in the file corresponding to a particular frame number 'fno'
-- for this we call the function to get the length information of all the sequences in the file 
+- for this we call the function to get the length information of all the sequences in the file
 * Mapping Repeats in the File
 
 ** Question
@@ -1182,7 +1213,7 @@ Thus, for the repeats problem, we take this approach:
 
 
 
-** Getting frequency of a given repeat
+** Getting frequency of a given repeat in a sequence 
 
 *** The =get_repeat_frequency(sequence, repeat_unit)= function
 
@@ -1246,6 +1277,20 @@ Thus, for the repeats problem, we take this approach:
       print("\n* ====", i, "====\n")
       print(get_seq_repeat_info(test_sequence, i))
 #+end_src
+
+** Printing the frequency of a given repeat in a file 
+#+begin_src python :session gdspyt :tangle ./repeats.py
+  def repeat_times_file(fasta_dict, repeat):
+      """this returns the the frequency of occurance of a repeat in the file."""
+
+      frequency = 0
+      #this loop simply adds the number of times the repeat occurs in each sequence of fasa_dict
+      for id, sequence in fasta_dict.items():
+          frequency = frequency + get_repeat_frequency(sequence, repeat)
+
+      return frequency
+#+end_src
+
 ** Getting the repeat information of all unique repeats for all sequences of a file
 
 *** The =get_file_repeat_units(fasta_dictionary, n)= function
@@ -1311,9 +1356,28 @@ Thus, for the repeats problem, we take this approach:
 max_repeats_list = max_occurance_n(fast_dict, 8) 
 print(max_repeats_list)
 #+end_src
+
+** Printing repeat units of length 'n' with maximum frequency in the file 
+#+begin_src python :session gdspyt :tangle ./repeats.py
+  def print_max_repeat_n(fasta_dict, n):
+      """this function prints the maximum number of times of occurance of repeat units of lengths n and all such repeat units with occur with the maximum frequency"""
+
+      #first we get the max repeats list by calling the max_occurance_n function. remember that the first position of the list returned by the function contains the maximum frequency
+      max_repeats_list = max_occurance_n(fasta_dict, n)
+
+      print("\nRepeat(s) of length", n, "occur(s) a max of", max_repeats_list[0], "times in the file.", end = " ")
+      print("The following repeats occur at this maximum frequency:")
+      i = 1 #because we want to print from the second position of the list
+      list_len = len(max_repeats_list)
+      while(i < list_len):
+          print(max_repeats_list[i])
+          i = i + 1 
+
+      return 0
+#+end_src
 * Creating the UI
 Now all that is left to do is to create the UI.
-** TODO Taking the input and generating the options 
+** Taking the input and generating the options 
 getopt module (inbuilt)
 *** Opening the file 
 #+begin_src python :tangle ./genomic-tools-gdspyt-ui.py
@@ -1376,10 +1440,14 @@ print("* ORFs in the file")
 print_orfs_of_file(fast_dict)
 #+end_src
 
-*** Printing length of  longest ORF(s), those ORFs  and the identifiers containing them. 
+*** Printing length of  longest and shortest ORF(s), those ORFs  and the identifiers containing them along with the start and stop positions in the sequence.  
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
   print("* Longest and Shortest ORFs in the file.")
   print_longest_shortest_ORFs(fast_dict)
+#+end_src
+
+*** Printing lengths of longest and shortest ORF(s) corresponding to individual frames, and the identifiers containing them along with the start and stop positions along with the coordinates. 
+#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
   print("* Longest and Shortest ORFs in individual frames.")
   i = 1
   while (i <= 3):
@@ -1388,57 +1456,30 @@ print_orfs_of_file(fast_dict)
       i = i + 1 
 #+end_src
 
-*** TODO For a given identifier in the file, what is the longest ORF for that identifier 
-*** TODO Length of the longest ORF in the file, its identifier and the starting position in the sequence
+*** For a given identifier in the file, what is the longest ORF for that identifier 
+#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
+  print("* Identifier ORFs")
+  identifier = "gi|142022655|gb|EQ086233.1|43"
+  tester = fast_dict[identifier]
+  print("The identifier", identifier, "has ORFs with the following:\n")
+  print_seq_orf_info(tester)
+#+end_src
 ** Repeats  operations
-repeats module 
-*** Importing the =repeats.py= module
-#+begin_src python :tangle ./genomic-tools-gdspyt-ui.py
+*** importing the =repeats.py= module
+#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
   from repeats import *
 #+end_src
 
-*** Printing the frequency of a given repeat in a file 
-**** Function to Get the frequency 
+*** printing the frequency of a given repeat in a file 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
-  def repeat_times_file(fasta_dict, repeat):
-      """This returns the the frequency of occurance of a repeat in the file."""
-
-      frequency = 0
-      #this loop simply adds the number of times the repeat occurs in each sequence of fasa_dict
-      for ID, sequence in fasta_dict.items():
-          frequency = frequency + get_repeat_frequency(sequence, repeat)
-
-      return frequency
+input_repeat_unit = 'GCCGCCG'
+print("* Repeat Information")
+print("\nThe repeat", input_repeat_unit, "occurs with a frequency of", repeat_times_file(fast_dict, input_repeat_unit))
 #+end_src
-**** Printing the frequency
-We will gradually replace the =input_repeat_unit= variable's value with a user input.  
-#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
-input_repeat_unit = 'CGCGCTCG'
-#print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, input_repeat_unit))
-#+end_src
-
 
 *** Printing repeat units of length 'n' with maximum frequency in the file 
-**** Function to get the repeat units 
-#+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py
-  def print_max_repeat(fasta_dict, n):
-      """This function prints the maximum number of times of occurance of repeat units of lengths n and all such repeat units with occur with the maximum frequency"""
-
-      #first we get the max repeats list by calling the max_occurance_n function. Remember that the first position of the list returned by the function contains the maximum frequency
-      max_repeats_list = max_occurance_n(fasta_dict, n)
-
-      print("The repeat of length", n, "occurs a max of", max_repeats_list[0], "times in the file.")
-      print("The following repeats occur at the maximum frequency:")
-      i = 1 #because we want to print from the second position of the list
-      list_len = len(max_repeats_list)
-      while(i < list_len):
-          print(max_repeats_list[i])
-          i = i + 1 
-
-      return 0
-#+end_src
-**** Printing the repeat units 
 #+begin_src python :session gdspyt :tangle ./genomic-tools-gdspyt-ui.py 
-#print_max_repeat(fast_dict, 8)
+print_max_repeat_n(fast_dict, 11)
 #+end_src
+
 

@@ -1,11 +1,3 @@
-from orfs import *
-comparison_tuple = compare_seq_orfs(test_sequence, 2)
-print("Max length:", comparison_tuple[0])
-print("Sequences with max length:", comparison_tuple[1])
-print("Min length:", comparison_tuple[2])
-print("Sequences with min length:", comparison_tuple[3])
-print("All the ORFs with their starting and stop positions and their length:", comparison_tuple[4])
-
 #!/usr/bin/python3
 import sys
 def usage():
@@ -50,6 +42,7 @@ print_orfs_of_file(fast_dict)
 
 print("* Longest and Shortest ORFs in the file.")
 print_longest_shortest_ORFs(fast_dict)
+
 print("* Longest and Shortest ORFs in individual frames.")
 i = 1
 while (i <= 3):
@@ -57,35 +50,16 @@ while (i <= 3):
     print_longest_shortest_ORFs(fast_dict, i)
     i = i + 1
 
+print("* Identifier ORFs")
+identifier = "gi|142022655|gb|EQ086233.1|43"
+tester = fast_dict[identifier]
+print("The identifier", identifier, "has ORFs with the following:\n")
+print_seq_orf_info(tester)
+
 from repeats import *
 
-def repeat_times_file(fasta_dict, repeat):
-    """This returns the the frequency of occurance of a repeat in the file."""
+input_repeat_unit = 'GCCGCCG'
+print("* Repeat Information")
+print("\nThe repeat", input_repeat_unit, "occurs with a frequency of", repeat_times_file(fast_dict, input_repeat_unit))
 
-    frequency = 0
-    #this loop simply adds the number of times the repeat occurs in each sequence of fasa_dict
-    for ID, sequence in fasta_dict.items():
-        frequency = frequency + get_repeat_frequency(sequence, repeat)
-
-    return frequency
-
-input_repeat_unit = 'CGCGCTCG'
-#print("The frequency of", input_repeat_unit, "is", repeat_times_file(fast_dict, input_repeat_unit))
-
-def print_max_repeat(fasta_dict, n):
-    """This function prints the maximum number of times of occurance of repeat units of lengths n and all such repeat units with occur with the maximum frequency"""
-
-    #first we get the max repeats list by calling the max_occurance_n function. Remember that the first position of the list returned by the function contains the maximum frequency
-    max_repeats_list = max_occurance_n(fasta_dict, n)
-
-    print("The repeat of length", n, "occurs a max of", max_repeats_list[0], "times in the file.")
-    print("The following repeats occur at the maximum frequency:")
-    i = 1 #because we want to print from the second position of the list
-    list_len = len(max_repeats_list)
-    while(i < list_len):
-        print(max_repeats_list[i])
-        i = i + 1 
-
-    return 0
-
-#print_max_repeat(fast_dict, 8)
+print_max_repeat_n(fast_dict, 11)

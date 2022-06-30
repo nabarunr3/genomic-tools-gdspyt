@@ -35,6 +35,16 @@ def get_seq_repeat_info(sequence, n):
 
     return sequence_repeats_dict
 
+def repeat_times_file(fasta_dict, repeat):
+    """this returns the the frequency of occurance of a repeat in the file."""
+
+    frequency = 0
+    #this loop simply adds the number of times the repeat occurs in each sequence of fasa_dict
+    for id, sequence in fasta_dict.items():
+        frequency = frequency + get_repeat_frequency(sequence, repeat)
+
+    return frequency
+
 def get_file_repeat_units(fasta_dict, n):
     #dictionary storing the non-unique repeat information of the file by calling get_seq_repeat_info()
     file_repeat_info = {}
@@ -74,3 +84,19 @@ def max_occurance_n(fasta_dict, n):
             max_repeats_list.append(repeat_unit)
 
     return max_repeats_list
+
+def print_max_repeat_n(fasta_dict, n):
+    """this function prints the maximum number of times of occurance of repeat units of lengths n and all such repeat units with occur with the maximum frequency"""
+
+    #first we get the max repeats list by calling the max_occurance_n function. remember that the first position of the list returned by the function contains the maximum frequency
+    max_repeats_list = max_occurance_n(fasta_dict, n)
+
+    print("\nRepeat(s) of length", n, "occur(s) a max of", max_repeats_list[0], "times in the file.", end = " ")
+    print("The following repeats occur at this maximum frequency:")
+    i = 1 #because we want to print from the second position of the list
+    list_len = len(max_repeats_list)
+    while(i < list_len):
+        print(max_repeats_list[i])
+        i = i + 1 
+
+    return 0

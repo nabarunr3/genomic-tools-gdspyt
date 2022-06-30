@@ -1,10 +1,13 @@
 test_sequence="AGGCTTGACCTTGTGCGGCAGCCGGCAGCCGCCGGCCGGCAGGTTGCCGTACGGATCCTCGTCGGCCGCCGTCGCGGGGGCCGCCGGCATCACGGGGGCGGTCGACGCGACCAGCATCGGGGGGAACGGCAACGCATGCACCCGCTCGCCGGTCAGCACGAACGCACCGTTGGCCACCGCCGGCGCGATCGGCGGCACGCCGGCGTCGCTCAACCCGGTCGGCTGGGCGTCCGACGGCACGAAGAAGACATCCACCGGCGGCGCTTCCTGCATGCGTATCGGCGAATAGTCGGCGAAACCGGCGTTGCGGACCGCGCCATGGTCGACGTCGATCGCGAAGCCGGGCTTCGTCGTCGCGAGACCGAACAGCGCGCCGCCCTGGATCTGCGCTTGCGCGCCGGTCGGGTTGACGATGCGGCCCGCATACACGCCGGCCGTCACGCGATGCACGCGCGGTTGTTGCGCTTCGATCGACACTTCCGTCACGTACGCGACGACCGAGCCGGCCGTTTCGTGCATCGCGACGCCCCACGCGTGCCCGGCCGGCAGCGTGCGCGCGCCGTAGCCGGACTTGTCGACGGCCAGCGCGAGCGCCTGCCGATGCGCGGCGTGCTCGGGGCCGGCCAGCCGCGTCATCCGGTAGGCGACCGGATCCTGCCGCGCCGAGTGCGCGAGCTCGTCGACCAGCGTTTCCATCACGAACGCCGTATGCGAGTTGCCGCCCGAGCGCCACGTCTGGACCGGCACGTCGGCCTCGGTCTGATGAACCGATACCTGCATCGGGAAGCCGTACGGGCTGTTCGTCACGCCTTCGGTCAGGCTCGGATCGGTGCCGCGCTTGAGCATCGTCGTGCGCTCGAGCGGCGAGCCCTTCAGCACAGACTGGCCGACGACCACGTGCTGCCAGTCGCGCACGGCGCCGCTGCCGTCCACGCCGATGTCGACGCGATGCAGCACCATCGGGCGGTAATAGCCGCCGCGCAGATCGTCCTCGCGCGTCCAGATCGTCTTGACGGGGCCGAGATGGCCGGCCGCGAGGTACGCGGCGGACACGTGGGCGGCTTCGACCACGTAGTCCGACGTCGGCGTCGAGCGCCGGCCATAGTCGCCGCCCGAGGTCAGCGTGAAGATCTGGACTTTCTCCGGGGCGACGCCGAGCGCCTTCGCGACCGCCGCGCGGTCGGTCGTC"
 
-def frame_orfs(frame):
+def frame_orfs(frame, fn=1):
     """
     This function extracts all non-overlapping ORFs from a sequence, 
     that is, ignoring start codons that fall between 
-    a previous start codon and stop codon.
+    a previous start codon and stop codon. 
+    By default it returns start and end positions considering 
+    the first frame of reference. However, if 2 or 3 is input, 
+    it will calculate the frames accordingly. 
 
     """
 
@@ -64,10 +67,10 @@ def frame_orfs(frame):
                         codon = trimmed_frame[j:j+3]
                         orf_dict[orf_name][0].append(codon)
                         j = j + 3
-                    #next we store the start and stop positions in the second and third positions of the orf_name list, respectively 
-                    orf_dict[orf_name].append(start_position)
+                    #next we store the start and stop positions in the second and third positions of the orf_name list, respectively. fn is added the start/stop  position so that from the perspective of the sequence it considers the start position from index 1. If fn=2 or 3, then we assume the 2nd or 3rd frame of any sequence has been input and we adjust the start and stop positions accordingly
+                    orf_dict[orf_name].append(start_position + fn)
                     #we add 3 to the stop position to consider the 3rd nucleotide of the stop codon as the stop position
-                    orf_dict[orf_name].append((stop_position + 3)) 
+                    orf_dict[orf_name].append((stop_position + fn + 3)) 
 
                     #we now break out of the stop codon searching loop 
                     break
@@ -149,12 +152,17 @@ def sequence_orfs(sequence, fn=0):
 
     #this loop goes through all the frames in the dictionary, calls the frame_orfs() function for each frame and stores the output in frames_dictionary.
     if(fn == 0):
+        fn = 1
         for frame, frame_sequence in frames_dictionary.items():
-            sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence)
+            #if Frame4 is reached, we restart from fn=1. This will again increment to 2 and 3 when frames 5 and 6 are reached, respectively. 
+            if(fn == 4):
+                fn = 1 
+            sequence_orfs_dictionary[frame] = frame_orfs(frame_sequence, fn)
+            fn = fn + 1 
+    #the else case is when a frame number has been entered. Start and stop positions are adjusted accordingly in frame_orfs()
     else:
         frame = "Frame"+str(fn)
-        sequence_orfs_dictionary[frame] = frame_orfs(frames_dictionary[frame])
-
+        sequence_orfs_dictionary[frame] = frame_orfs(frames_dictionary[frame], fn)
 
 
     #for frame 5, 6, and 7, which are the reverse complement frames, we need to alter the start and stop positions of the frame, so that they are with respect to the forward sequence
@@ -220,7 +228,8 @@ def compare_seq_orfs(sequence, fn=0):
     for frame, frame_dict in seq_orf_len_dict.items():
         for orf, orf_len_info in frame_dict.items():
             #remember length is stored in the 3rd position of the orf_len_info list 
-            if orf_len_info[2] <= min_len:
+            orf_len = orf_len_info[2]
+            if orf_len <= min_len:
                 min_len = orf_len
 
 
@@ -232,38 +241,66 @@ def compare_seq_orfs(sequence, fn=0):
             if orf_len_info[2] == max_len:
                 max_len_dict[frame] = {}
                 max_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
-            elif orf_len_info[2] == min_len:
+            if orf_len_info[2] == min_len:
                 min_len_dict[frame] = {}
                 min_len_dict[frame][orf] = [seq_orf_info[frame][orf][1], seq_orf_info[frame][orf][2]]
 
     return (max_len, max_len_dict, min_len, min_len_dict, seq_orf_len_dict)
+
+def print_seq_orf_info(sequence, fn=0):
+    """
+    This function prints in a presentable manner, 
+    the sequence information of any sequence enterd,
+    by calling the compare_seq_orfs().
+
+    """
+    comparison_tuple = compare_seq_orfs(sequence)
+    print("Max length:", comparison_tuple[0])
+    print("\n\nORFs with max length:")
+    print("\nFrame \t ORF \t Start \t Stop")
+    for frame, frame_info in comparison_tuple[1].items():
+        for orf, orf_info in frame_info.items():
+            print(frame, "\t", orf, "\t", orf_info[0], "\t", orf_info[1])
+    print("\nMin length:", comparison_tuple[2])
+    print("\n\nORFs with min length:")
+    print("\nFrame \t ORF \t Start \t Stop")
+    for frame, frame_info in comparison_tuple[1].items():
+        for orf, orf_info in frame_info.items():
+            print(frame, "\t", orf, "\t", orf_info[0], "\t", orf_info[1])
+
+    return 0
 
 def file_ORF_compare_lengths(fasta_dict, fn=0):
  """This function compares the maximum and minimum lengths of all ORFs in all sequences in a file and returns the lengths of the longest and shortest ORF in the file."""
  #initializing the dictionary which will store the ORF lengths information from calling compare_seq_orfs() for all the sequences 
  file_ORF_len_dict = {}
 
- #building the file_ORF_len_dict dictionary
- #for the frame information of the
+ #building the file_ORF_len_dict for all sequences in fasta_dict 
 
  for identifier, sequence in fasta_dict.items():
   file_ORF_len_dict[identifier] = compare_seq_orfs(sequence, fn)
+  # print(file_ORF_len_dict[identifier]) #for testing 
 
  #now we will go over the entries of the dictionary and get the values of the maximum ORF
  max_len_file = 0
  for identifier, sequence_info in file_ORF_len_dict.items():
   #the first entry in the tuple returned by compare_seq_ORFs contains the maximum length of the sequence 
-  if sequence_info[0] > max_len_file:
-   max_len_file = sequence_info[0]
+  orf_len = sequence_info[0]
+  if orf_len > max_len_file:
+   max_len_file = orf_len
 
  #getting the value of the minimum length of the ORF
  min_len_file = max_len_file
  for identifier, sequence_info in file_ORF_len_dict.items():
   #the third entry in the tuple returned by compare_seq_ORFs contains the minimum length of the sequence 
-  if sequence_info[2] < min_len_file:
-   min_len_file = sequence_info[2]
+  orf_len = sequence_info[2]
+  # print("Orf_len:", orf_len) #to test 
+  #because certain frames might contain no ORF at all, we have to exclude from consideration a minimum length of 0. 
+  if ((orf_len <= min_len_file) & (orf_len!=0)):
+   min_len_file = orf_len
+   # print("Changed min len:", min_len_file) #to test
 
- print(max_len_file, min_len_file)
+ # print(max_len_file, min_len_file)
  return (max_len_file, min_len_file)
 
 def get_all_ORFs_of_length(fasta_dict, x):
